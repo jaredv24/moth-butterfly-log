@@ -7,6 +7,7 @@ import { SeenBadge } from "@/components/SeenBadge";
 import { SpeciesName } from "@/components/SpeciesName";
 import { SpeciesPicker } from "@/components/SpeciesPicker";
 import { Thumb } from "@/components/Thumb";
+import { readPhotoMeta } from "@/lib/exif";
 import { shrinkImage } from "@/lib/resize";
 import { useUserCode } from "@/lib/useUserCode";
 import type { Candidate, ChecklistItem, IdentifyResponse, LogResponse } from "@/lib/types";
@@ -31,8 +32,12 @@ export default function IdentifyPage() {
   const [candidates, setCandidates] = useState<Candidate[] | null>(null);
   const [picking, setPicking] = useState(false);
   const coordsRef = useRef<Coords>(null);
+  const observedAtRef = useRef<string | null>(null);
   const photoRef = useRef<Blob | null>(null);
-  const [geoState, setGeoState] = useState<"idle" | "asking" | "ok" | "denied">("idle");
+  const [geoState, setGeoState] = useState<
+    "idle" | "asking" | "ok" | "denied" | "photo"
+  >("idle");
+  const [timeFromPhoto, setTimeFromPhoto] = useState(false);
   const [logSummary, setLogSummary] = useState<LogResponse | null>(null);
   const [done, setDone] = useState<{
     name: string;
@@ -40,6 +45,7 @@ export default function IdentifyPage() {
     placeLabel: string | null;
     isNewSpecies: boolean;
     checklisted: boolean;
+    observedAt: string;
   } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -68,10 +74,15 @@ export default function IdentifyPage() {
     setCandidates(null);
     setPicking(false);
     setDone(null);
+    setTimeFromPhoto(false);
+    setGeoState("idle");
     photoRef.current = null;
+    coordsRef.current = null;
+    observedAtRef.current = null;
     if (fileInput.current) fileInput.current.value = "";
   }
 
+  /** Only called when the photo carried no GPS of its own. */
   function captureLocation() {
     if (!("geolocation" in navigator)) return;
     setGeoState("asking");
@@ -89,10 +100,22 @@ export default function IdentifyPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     setError(null);
-    captureLocation();
     setPhase("identifying");
 
     try {
+      // Read capture GPS + time from EXIF BEFORE shrinking (canvas drops it).
+      const meta = await readPhotoMeta(file);
+      if (meta.gpsFromPhoto && meta.lat != null && meta.lng != null) {
+        coordsRef.current = { lat: meta.lat, lng: meta.lng };
+        setGeoState("photo");
+      } else {
+        captureLocation(); // photo has no GPS — fall back to where we are now
+      }
+      if (meta.takenAt) {
+        observedAtRef.current = meta.takenAt;
+        setTimeFromPhoto(true);
+      }
+
       const blob = await shrinkImage(file);
       photoRef.current = blob;
       setPhotoPreview(URL.createObjectURL(blob));
@@ -135,6 +158,7 @@ export default function IdentifyPage() {
         form.append("lat", String(c.lat));
         form.append("lng", String(c.lng));
       }
+      if (observedAtRef.current) form.append("observedAt", observedAtRef.current);
 
       const res = await fetch("/api/log", { method: "POST", body: form });
       const data = await res.json();
@@ -145,6 +169,7 @@ export default function IdentifyPage() {
         placeLabel: data.placeLabel ?? null,
         isNewSpecies: !!data.isNewSpecies,
         checklisted: args.speciesId != null,
+        observedAt: data.sighting?.observedAt ?? new Date().toISOString(),
       });
       setPhase("done");
       loadSummary();
@@ -230,12 +255,12 @@ export default function IdentifyPage() {
           <div className="overflow-hidden rounded-2xl border border-border bg-surface">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={photoPreview} alt="Your photo" className="max-h-72 w-full object-cover" />
-            <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted">
-              {geoState === "ok" && <span>📍 Location captured</span>}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 text-xs text-muted">
+              {geoState === "photo" && <span>📍 Location from photo</span>}
+              {geoState === "ok" && <span>📍 Current location</span>}
               {geoState === "asking" && <span>📍 Getting location…</span>}
-              {geoState === "denied" && (
-                <span>📍 Location off — badge will show the date only</span>
-              )}
+              {geoState === "denied" && <span>📍 No location — date only</span>}
+              {timeFromPhoto && <span>🕑 Date from photo</span>}
             </div>
           </div>
         )}
@@ -311,7 +336,7 @@ export default function IdentifyPage() {
                 : "Logged under “other sightings.”"}
           </p>
           <div className="flex justify-center">
-            <SeenBadge placeLabel={done.placeLabel} observedAt={new Date().toISOString()} />
+            <SeenBadge placeLabel={done.placeLabel} observedAt={done.observedAt} />
           </div>
           <div className="flex gap-2 pt-1">
             <button
