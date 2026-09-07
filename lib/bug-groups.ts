@@ -12,6 +12,7 @@ const ORDER_GROUPS: Record<string, string> = {
   Mantodea: "Mantises",
   Blattodea: "Cockroaches & Termites",
   Phasmatodea: "Stick & Leaf Insects",
+  Phasmida: "Stick & Leaf Insects",
   Neuroptera: "Lacewings & Antlions",
   Ephemeroptera: "Mayflies",
   Plecoptera: "Stoneflies",
@@ -25,12 +26,19 @@ const ORDER_GROUPS: Record<string, string> = {
   Ixodida: "Ticks",
   Scorpiones: "Scorpions",
   Julida: "Millipedes",
+  Spirobolida: "Millipedes",
   Scolopendromorpha: "Centipedes",
+  Xiphosura: "Horseshoe Crabs",
+  Xiphosurida: "Horseshoe Crabs",
+  Decapoda: "Crabs, Shrimp & Crayfish",
+  Isopoda: "Woodlice & Pillbugs",
+  Stylommatophora: "Snails & Slugs",
+  Architaenioglossa: "Snails & Slugs",
 };
 
 export function bugGroupFor(order: string | null | undefined): string {
   if (!order) return "Other bugs";
-  return ORDER_GROUPS[order] ?? `Other ${order}`;
+  return ORDER_GROUPS[order] ?? "Other critters";
 }
 
 /** Emoji for a friendly group name (falls back to a generic bug). */
