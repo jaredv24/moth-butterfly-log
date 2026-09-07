@@ -11,6 +11,13 @@ export type ChecklistItem = {
   thumbUrl: string | null;
 };
 
+export type PlausibilityVerdict =
+  | "expected"
+  | "possible"
+  | "unusual"
+  | "out-of-area"
+  | "unknown";
+
 export type Candidate = {
   name: string;
   scientificName: string;
@@ -25,6 +32,7 @@ export type Candidate = {
     family: string | null;
     thumbUrl: string | null;
   };
+  plausibility: { verdict: PlausibilityVerdict; note: string } | null;
 };
 
 export type IdentifyResponse = {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getChecklist } from "@/lib/data";
 import { getIdProvider } from "@/lib/id-provider";
 import { matchCandidate } from "@/lib/checklist-match";
+import { assessPlausibility } from "@/lib/plausibility";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -34,6 +35,8 @@ export async function POST(req: Request) {
 
   const lat = numeric(form?.get("lat"));
   const lng = numeric(form?.get("lng"));
+  const observedAt = str(form?.get("observedAt"));
+  const observedDate = observedAt ? new Date(observedAt) : new Date();
   const bytes = Buffer.from(await photo.arrayBuffer());
   const checklist = await getChecklist();
 
@@ -42,14 +45,15 @@ export async function POST(req: Request) {
     const raw = await provider.identify(bytes, {
       lat,
       lng,
-      observedOn: new Date().toISOString().slice(0, 10),
+      observedOn: observedDate.toISOString().slice(0, 10),
     });
-    const candidates = raw.map((c) => {
+
+    let candidates = raw.map((c) => {
       const m = matchCandidate(c, checklist);
       return {
         name: c.name,
         scientificName: c.scientificName,
-        inatTaxonId: c.inatTaxonId ?? null,
+        inatTaxonId: m.species?.inatTaxonId ?? c.inatTaxonId ?? null,
         confidence: c.confidence,
         match: {
           speciesId: m.species?.id ?? null,
@@ -60,8 +64,40 @@ export async function POST(req: Request) {
           family: m.species?.family ?? null,
           thumbUrl: m.species?.thumbUrl ?? null,
         },
+        plausibility: null as { verdict: string; note: string } | null,
       };
     });
+
+    // Location-aware sanity check: how often is each candidate actually
+    // recorded near here, this month? Annotates + re-ranks gently. Fails soft.
+    if (lat != null && lng != null && candidates.length > 1) {
+      try {
+        const scores = await assessPlausibility(
+          candidates.map((c, i) => ({
+            key: String(i),
+            inatTaxonId: c.inatTaxonId,
+            scientificName: c.scientificName,
+          })),
+          lat,
+          lng,
+          observedDate.getMonth() + 1,
+        );
+        candidates = candidates
+          .map((c, i) => ({ c, p: scores.get(String(i)) }))
+          .sort(
+            (a, b) =>
+              b.c.confidence * (b.p?.weight ?? 1) -
+              a.c.confidence * (a.p?.weight ?? 1),
+          )
+          .map(({ c, p }) => ({
+            ...c,
+            plausibility: p?.note ? { verdict: p.verdict, note: p.note } : null,
+          }));
+      } catch (err) {
+        console.error("plausibility check failed (ignored):", err);
+      }
+    }
+
     return NextResponse.json({ candidates });
   } catch (err) {
     console.error("identify failed:", err);
@@ -76,4 +112,8 @@ function numeric(v: FormDataEntryValue | null | undefined): number | undefined {
   if (typeof v !== "string" || v === "") return undefined;
   const n = Number(v);
   return Number.isFinite(n) ? n : undefined;
+}
+
+function str(v: FormDataEntryValue | null | undefined): string | null {
+  return typeof v === "string" && v ? v : null;
 }

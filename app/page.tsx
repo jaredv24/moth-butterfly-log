@@ -82,18 +82,37 @@ export default function IdentifyPage() {
     if (fileInput.current) fileInput.current.value = "";
   }
 
-  /** Only called when the photo carried no GPS of its own. */
-  function captureLocation() {
-    if (!("geolocation" in navigator)) return;
+  /**
+   * Only called when the photo carried no GPS of its own. Resolves once a fix
+   * lands or after `waitMs`, so identification can wait for it without stalling.
+   */
+  function captureLocation(waitMs = 3000): Promise<void> {
+    if (!("geolocation" in navigator)) return Promise.resolve();
     setGeoState("asking");
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        coordsRef.current = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        setGeoState("ok");
-      },
-      () => setGeoState("denied"),
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
-    );
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = () => {
+        if (!done) {
+          done = true;
+          resolve();
+        }
+      };
+      const cap = setTimeout(finish, waitMs);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          coordsRef.current = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          setGeoState("ok");
+          clearTimeout(cap);
+          finish();
+        },
+        () => {
+          setGeoState("denied");
+          clearTimeout(cap);
+          finish();
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
+      );
+    });
   }
 
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
@@ -105,11 +124,12 @@ export default function IdentifyPage() {
     try {
       // Read capture GPS + time from EXIF BEFORE shrinking (canvas drops it).
       const meta = await readPhotoMeta(file);
+      let locating: Promise<void> = Promise.resolve();
       if (meta.gpsFromPhoto && meta.lat != null && meta.lng != null) {
         coordsRef.current = { lat: meta.lat, lng: meta.lng };
         setGeoState("photo");
       } else {
-        captureLocation(); // photo has no GPS — fall back to where we are now
+        locating = captureLocation(); // no photo GPS — use where we are now
       }
       if (meta.takenAt) {
         observedAtRef.current = meta.takenAt;
@@ -120,7 +140,8 @@ export default function IdentifyPage() {
       photoRef.current = blob;
       setPhotoPreview(URL.createObjectURL(blob));
 
-      await new Promise((r) => setTimeout(r, 400)); // let a cached GPS fix land
+      // Wait for a location fix so the identifier gets it as a regional prior.
+      await locating;
       const form = new FormData();
       form.append("photo", blob, "photo.jpg");
       const c = coordsRef.current;
@@ -128,6 +149,7 @@ export default function IdentifyPage() {
         form.append("lat", String(c.lat));
         form.append("lng", String(c.lng));
       }
+      if (observedAtRef.current) form.append("observedAt", observedAtRef.current);
       const res = await fetch("/api/identify", { method: "POST", body: form });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Identification failed");
@@ -298,6 +320,7 @@ export default function IdentifyPage() {
                     <span className="rounded bg-border px-1.5 py-0.5">genus-level</span>
                   )}
                 </div>
+                {c.plausibility && <PlausibilityTag p={c.plausibility} />}
               </div>
               <span className="text-accent">›</span>
             </button>
@@ -374,6 +397,29 @@ export default function IdentifyPage() {
           onClose={() => setPicking(false)}
         />
       )}
+    </div>
+  );
+}
+
+function PlausibilityTag({
+  p,
+}: {
+  p: NonNullable<Candidate["plausibility"]>;
+}) {
+  const style =
+    p.verdict === "expected"
+      ? "bg-accent/15 text-accent"
+      : p.verdict === "out-of-area" || p.verdict === "unusual"
+        ? "bg-amber-500/15 text-amber-700 dark:text-amber-400"
+        : "bg-border text-muted";
+  const icon =
+    p.verdict === "expected" ? "✓" : p.verdict === "possible" ? "•" : "⚠";
+  return (
+    <div
+      className={`mt-1 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium ${style}`}
+    >
+      <span aria-hidden>{icon}</span>
+      {p.note}
     </div>
   );
 }
