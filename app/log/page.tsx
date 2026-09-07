@@ -196,8 +196,18 @@ function LogCard({
             common={entry.identifiedName}
             scientific={entry.identifiedScientific}
           />
-          <div className="mt-1.5">
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             <SeenBadge placeLabel={entry.placeLabel} observedAt={entry.observedAt} />
+            {entry.inatObservationId && (
+              <a
+                href={`https://www.inaturalist.org/observations/${entry.inatObservationId}`}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full bg-border px-2 py-0.5 text-[11px] font-medium text-muted"
+              >
+                iNaturalist ↗
+              </a>
+            )}
           </div>
         </div>
         <button

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
@@ -6,6 +6,7 @@ import { sightings } from "@/db/schema";
 import { isValidUserCode, normalizeUserCode } from "@/lib/code";
 import { findUser, getChecklist, getSpeciesById, getUserLog } from "@/lib/data";
 import { reverseGeocode } from "@/lib/geocode";
+import { syncSighting } from "@/lib/inat-sync";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { deletePhoto, storePhoto } from "@/lib/storage";
 
@@ -126,6 +127,11 @@ export async function POST(req: Request) {
       observedAt,
     })
     .returning();
+
+  // Post to iNaturalist in the background if the owner has auto-sync on.
+  if (user.inatSyncEnabled && user.inatAccessToken && row) {
+    after(() => syncSighting(row.id));
+  }
 
   return NextResponse.json({ sighting: row, isNewSpecies, placeLabel });
 }

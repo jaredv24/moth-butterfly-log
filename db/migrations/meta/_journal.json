@@ -15,6 +15,13 @@
       "when": 1788751622851,
       "tag": "0001_rate_hits",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788756505794,
+      "tag": "0002_inat_sync",
+      "breakpoints": true
     }
   ]
 }

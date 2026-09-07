@@ -51,6 +51,15 @@ export type LogItem = {
   lat: number | null;
   lng: number | null;
   observedAt: string;
+  inatObservationId: number | null;
+};
+
+export type InatStatus = {
+  configured: boolean;
+  connected: boolean;
+  username: string | null;
+  syncEnabled: boolean;
+  unsyncedCount: number;
 };
 
 export type LogResponse = {

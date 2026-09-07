@@ -2,6 +2,7 @@
 
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
+import { InatConnect } from "@/components/InatConnect";
 import { useUserCode } from "@/lib/useUserCode";
 
 export default function SettingsPage() {
@@ -109,6 +110,8 @@ export default function SettingsPage() {
           safe under its own code.
         </p>
       </section>
+
+      <InatConnect code={code} />
     </div>
   );
 }
