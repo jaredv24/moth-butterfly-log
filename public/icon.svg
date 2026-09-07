@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="112" fill="#3f6f4c"/>
-  <g transform="translate(256 262)">
+  <g transform="translate(256 282)">
     <!-- antennae -->
     <g fill="none" stroke="#f6f4ee" stroke-width="12" stroke-linecap="round">
       <path d="M-6 -148 C -20 -176 -44 -184 -62 -176"/>
