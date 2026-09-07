@@ -40,6 +40,17 @@ function readStored(): string | null {
   return m ? decodeURIComponent(m[1]) : null;
 }
 
+function cacheSession(code: string, username: string | null, hasPassword: boolean) {
+  try {
+    sessionStorage.setItem(
+      "lep-log:session",
+      JSON.stringify({ code, username, hasPassword }),
+    );
+  } catch {
+    /* ignore */
+  }
+}
+
 function stripUrlCode() {
   if (new URLSearchParams(window.location.search).has("code")) {
     const u = new URL(window.location.href);
@@ -68,9 +79,33 @@ export function useUserCode() {
 
   useEffect(() => {
     let cancelled = false;
-    const stored = typeof window !== "undefined" ? readStored() : null;
 
     (async () => {
+      const stored = readStored();
+
+      // Already resolved this browser session for this code — skip the round-trip.
+      try {
+        const cached = JSON.parse(sessionStorage.getItem("lep-log:session") ?? "null");
+        if (
+          cached &&
+          stored &&
+          cached.code === stored &&
+          !new URLSearchParams(window.location.search).has("code")
+        ) {
+          if (!cancelled)
+            setState({
+              code: cached.code,
+              username: cached.username ?? null,
+              hasPassword: !!cached.hasPassword,
+              loading: false,
+              needsPassword: null,
+            });
+          return;
+        }
+      } catch {
+        /* ignore */
+      }
+
       try {
         const { res, data } = await resolve(stored ? { code: stored } : {});
         if (cancelled) return;
@@ -81,6 +116,7 @@ export function useUserCode() {
         if (data.code) {
           persist(data.code);
           stripUrlCode();
+          cacheSession(data.code, data.username ?? null, !!data.hasPassword);
           setState({ code: data.code, username: data.username ?? null, hasPassword: !!data.hasPassword, loading: false, needsPassword: null });
         } else {
           setState({ code: stored, username: null, hasPassword: false, loading: false, needsPassword: null });
@@ -108,6 +144,7 @@ export function useUserCode() {
     if (!res.ok || !data.code) throw new Error(data.error ?? "Could not use that code");
     persist(data.code);
     stripUrlCode();
+    cacheSession(data.code, data.username ?? null, !!data.hasPassword);
     setState({ code: data.code, username: data.username ?? null, hasPassword: !!data.hasPassword, loading: false, needsPassword: null });
     return data as { code: string; created: boolean; username: string | null };
   }, []);
@@ -122,12 +159,20 @@ export function useUserCode() {
   );
 
   const setUsername = useCallback(
-    (username: string | null) => setState((s) => ({ ...s, username })),
+    (username: string | null) =>
+      setState((s) => {
+        if (s.code) cacheSession(s.code, username, s.hasPassword);
+        return { ...s, username };
+      }),
     [],
   );
 
   const setHasPassword = useCallback(
-    (hasPassword: boolean) => setState((s) => ({ ...s, hasPassword })),
+    (hasPassword: boolean) =>
+      setState((s) => {
+        if (s.code) cacheSession(s.code, s.username, hasPassword);
+        return { ...s, hasPassword };
+      }),
     [],
   );
 
