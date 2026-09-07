@@ -15,7 +15,7 @@ const MAX_BYTES = 12 * 1024 * 1024;
  * confirms a species, so abandoned identifications leave nothing behind.
  */
 export async function POST(req: Request) {
-  const limit = await rateLimit("identify", clientIp(req), 40, 3600);
+  const limit = await rateLimit("identify", clientIp(req), 60, 3600);
   if (!limit.ok) {
     return NextResponse.json(
       { error: "Too many identifications in the last hour. Try again later." },

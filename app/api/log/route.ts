@@ -47,7 +47,7 @@ export async function GET(req: Request) {
 
 /** Create a sighting. Multipart: `photo` file + fields. Stores the photo now. */
 export async function POST(req: Request) {
-  const limit = await rateLimit("log", clientIp(req), 60, 3600);
+  const limit = await rateLimit("log", clientIp(req), 100, 3600);
   if (!limit.ok) {
     return NextResponse.json({ error: "Too many sightings logged recently." }, { status: 429 });
   }

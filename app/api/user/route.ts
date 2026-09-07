@@ -11,7 +11,7 @@ const bodySchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const limit = await rateLimit("user", clientIp(req), 20, 3600);
+  const limit = await rateLimit("user", clientIp(req), 60, 3600);
   if (!limit.ok) {
     return NextResponse.json({ error: "Too many requests." }, { status: 429 });
   }
