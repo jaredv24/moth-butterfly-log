@@ -1,7 +1,7 @@
 import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { checklistSpecies, sightings, users } from "@/db/schema";
-import { generateUserCode } from "./code";
+import { generateFriendCode, generateUserCode } from "./code";
 
 export async function getOrCreateUser(
   code?: string,
@@ -30,6 +30,28 @@ export async function getOrCreateUser(
 
 export async function findUser(code: string) {
   return db.query.users.findFirst({ where: eq(users.code, code) });
+}
+
+export async function findUserByFriendCode(friendCode: string) {
+  return db.query.users.findFirst({
+    where: eq(users.friendCode, friendCode),
+  });
+}
+
+/** Mint the user's shareable follow code on first use. */
+export async function getOrCreateFriendCode(userId: string): Promise<string> {
+  const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
+  if (user?.friendCode) return user.friendCode;
+  for (let i = 0; i < 5; i++) {
+    const fresh = generateFriendCode();
+    const clash = await db.query.users.findFirst({
+      where: eq(users.friendCode, fresh),
+    });
+    if (clash) continue;
+    await db.update(users).set({ friendCode: fresh }).where(eq(users.id, userId));
+    return fresh;
+  }
+  throw new Error("could not generate a unique friend code");
 }
 
 let checklistCache: (typeof checklistSpecies.$inferSelect)[] | null = null;
@@ -91,6 +113,56 @@ export async function getSpeciesById(id: number) {
   return db.query.checklistSpecies.findFirst({
     where: eq(checklistSpecies.id, id),
   });
+}
+
+export type LogStats = {
+  totalButterflies: number;
+  totalMoths: number;
+  butterfliesSeen: number;
+  mothsSeen: number;
+  otherSpecies: number;
+  otherGroups: { group: string; species: number }[];
+};
+
+/** The full log + life-list stats for a user — shared by the log & friend APIs. */
+export async function getLogWithStats(
+  userId: string,
+): Promise<{ log: LogEntry[]; stats: LogStats }> {
+  const [log, checklist] = await Promise.all([getUserLog(userId), getChecklist()]);
+
+  const totals = checklist.reduce(
+    (acc, s) => {
+      if (s.taxonGroup === "butterfly") acc.totalButterflies++;
+      else acc.totalMoths++;
+      return acc;
+    },
+    { totalButterflies: 0, totalMoths: 0 },
+  );
+
+  const seen = new Set(log.filter((e) => e.speciesId != null).map((e) => e.speciesId));
+  let butterfliesSeen = 0;
+  let mothsSeen = 0;
+  for (const s of checklist) {
+    if (!seen.has(s.id)) continue;
+    if (s.taxonGroup === "butterfly") butterfliesSeen++;
+    else mothsSeen++;
+  }
+
+  const otherByGroup: Record<string, Set<string>> = {};
+  for (const e of log) {
+    if (e.speciesId != null) continue;
+    const g = e.otherGroup ?? "Other bugs";
+    (otherByGroup[g] ??= new Set()).add(e.identifiedScientific.toLowerCase());
+  }
+  const otherGroups = Object.entries(otherByGroup)
+    .map(([group, set]) => ({ group, species: set.size }))
+    .sort((a, b) => b.species - a.species);
+  const otherSpecies = otherGroups.reduce((n, g) => n + g.species, 0);
+
+  return {
+    log,
+    stats: { ...totals, butterfliesSeen, mothsSeen, otherSpecies, otherGroups },
+  };
 }
 
 export { and, eq };

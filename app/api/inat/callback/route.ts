@@ -10,7 +10,7 @@ import { inatRedirectUri } from "@/lib/inat-sync";
 export const runtime = "nodejs";
 
 function settingsRedirect(req: Request, params: string) {
-  const url = new URL("/settings", req.url);
+  const url = new URL("/profile", req.url);
   url.search = params;
   return NextResponse.redirect(url);
 }

@@ -38,6 +38,8 @@ export type Candidate = {
 
 export type IdentifyResponse = {
   candidates: Candidate[];
+  placeLabel: string | null;
+  observedAt: string;
 };
 
 export type LogItem = {

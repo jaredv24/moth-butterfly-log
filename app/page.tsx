@@ -40,6 +40,10 @@ export default function IdentifyPage() {
     "idle" | "asking" | "ok" | "denied" | "photo"
   >("idle");
   const [timeFromPhoto, setTimeFromPhoto] = useState(false);
+  const [idMeta, setIdMeta] = useState<{
+    placeLabel: string | null;
+    observedAt: string;
+  } | null>(null);
   const [logSummary, setLogSummary] = useState<LogResponse | null>(null);
   const [sheetSpecies, setSheetSpecies] = useState<string | null>(null);
   const [done, setDone] = useState<{
@@ -80,6 +84,7 @@ export default function IdentifyPage() {
     setDone(null);
     setTimeFromPhoto(false);
     setGeoState("idle");
+    setIdMeta(null);
     photoRef.current = null;
     coordsRef.current = null;
     observedAtRef.current = null;
@@ -157,7 +162,9 @@ export default function IdentifyPage() {
       const res = await fetch("/api/identify", { method: "POST", body: form });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Identification failed");
-      setCandidates((data as IdentifyResponse).candidates);
+      const d = data as IdentifyResponse;
+      setCandidates(d.candidates);
+      setIdMeta({ placeLabel: d.placeLabel, observedAt: d.observedAt });
       setPhase("results");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -269,7 +276,7 @@ export default function IdentifyPage() {
                 seen={logSummary.stats.mothsSeen}
                 total={logSummary.stats.totalMoths}
               />
-              <Link href="/checklist" className="block pt-1 text-sm font-medium text-accent">
+              <Link href="/journal?tab=checklist" className="block pt-1 text-sm font-medium text-accent">
                 Browse the full checklist →
               </Link>
             </section>
@@ -309,11 +316,26 @@ export default function IdentifyPage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={photoPreview} alt="Your photo" className="max-h-72 w-full object-cover" />
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 text-xs text-muted">
-              {geoState === "photo" && <span>📍 Location from photo</span>}
-              {geoState === "ok" && <span>📍 Current location</span>}
-              {geoState === "asking" && <span>📍 Getting location…</span>}
-              {geoState === "denied" && <span>📍 No location — date only</span>}
-              {timeFromPhoto && <span>🕑 Date from photo</span>}
+              {geoState === "asking" && !idMeta && <span>📍 Getting location…</span>}
+              {idMeta?.placeLabel ? (
+                <span>
+                  📍 {idMeta.placeLabel}
+                  {geoState === "photo" ? " (from photo)" : ""}
+                </span>
+              ) : idMeta ? (
+                <span>📍 No location</span>
+              ) : null}
+              {idMeta && (
+                <span>
+                  🕑{" "}
+                  {new Date(idMeta.observedAt).toLocaleDateString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                  {timeFromPhoto ? " (from photo)" : ""}
+                </span>
+              )}
             </div>
           </div>
         )}
@@ -407,7 +429,7 @@ export default function IdentifyPage() {
               Log another
             </button>
             <Link
-              href="/checklist"
+              href="/journal?tab=checklist"
               className="flex-1 rounded-xl border border-border px-4 py-2.5 text-sm font-semibold"
             >
               View checklist

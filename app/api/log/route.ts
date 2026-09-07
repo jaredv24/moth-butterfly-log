@@ -4,7 +4,12 @@ import { z } from "zod";
 import { db } from "@/db";
 import { sightings } from "@/db/schema";
 import { isValidUserCode, normalizeUserCode } from "@/lib/code";
-import { findUser, getChecklist, getSpeciesById, getUserLog } from "@/lib/data";
+import {
+  findUser,
+  getLogWithStats,
+  getSpeciesById,
+  getUserLog,
+} from "@/lib/data";
 import { reverseGeocode } from "@/lib/geocode";
 import { syncSighting } from "@/lib/inat-sync";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
@@ -25,40 +30,7 @@ export async function GET(req: Request) {
   const user = await findUser(code);
   if (!user) return NextResponse.json({ error: "unknown code" }, { status: 404 });
 
-  const [log, checklist] = await Promise.all([getUserLog(user.id), getChecklist()]);
-  const totals = checklist.reduce(
-    (acc, s) => {
-      if (s.taxonGroup === "butterfly") acc.totalButterflies++;
-      else acc.totalMoths++;
-      return acc;
-    },
-    { totalButterflies: 0, totalMoths: 0 },
-  );
-
-  const seen = new Set(log.filter((e) => e.speciesId != null).map((e) => e.speciesId));
-  const seenGroups = { butterfliesSeen: 0, mothsSeen: 0 };
-  for (const s of checklist) {
-    if (!seen.has(s.id)) continue;
-    if (s.taxonGroup === "butterfly") seenGroups.butterfliesSeen++;
-    else seenGroups.mothsSeen++;
-  }
-
-  // "other bugs" side list: distinct off-checklist species, grouped by type
-  const otherByGroup: Record<string, Set<string>> = {};
-  for (const e of log) {
-    if (e.speciesId != null) continue;
-    const g = e.otherGroup ?? "Other bugs";
-    (otherByGroup[g] ??= new Set()).add(e.identifiedScientific.toLowerCase());
-  }
-  const otherGroups = Object.entries(otherByGroup)
-    .map(([group, set]) => ({ group, species: set.size }))
-    .sort((a, b) => b.species - a.species);
-  const otherSpecies = otherGroups.reduce((n, g) => n + g.species, 0);
-
-  return NextResponse.json({
-    log,
-    stats: { ...totals, ...seenGroups, otherSpecies, otherGroups },
-  });
+  return NextResponse.json(await getLogWithStats(user.id));
 }
 
 /** Create a sighting. Multipart: `photo` file + fields. Stores the photo now. */

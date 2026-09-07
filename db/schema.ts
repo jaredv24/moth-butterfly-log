@@ -6,6 +6,7 @@ import {
   real,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -13,6 +14,8 @@ import {
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   code: text("code").notNull().unique(),
+  // shareable read-only follow code, minted on first use
+  friendCode: text("friend_code").unique(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -91,6 +94,28 @@ export const rateHits = pgTable(
     at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("rate_hits_bucket_at_idx").on(t.bucket, t.at)],
+);
+
+/** `owner` follows `friend` and can view their log read-only. One-directional. */
+export const friendships = pgTable(
+  "friendships",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ownerUserId: uuid("owner_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    friendUserId: uuid("friend_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    nickname: text("nickname"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("friendships_pair_idx").on(t.ownerUserId, t.friendUserId),
+    index("friendships_owner_idx").on(t.ownerUserId),
+  ],
 );
 
 export type User = typeof users.$inferSelect;

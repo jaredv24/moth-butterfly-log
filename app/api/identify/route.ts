@@ -4,6 +4,7 @@ import { getIdProvider } from "@/lib/id-provider";
 import { bugGroupFor } from "@/lib/bug-groups";
 import { matchCandidate } from "@/lib/checklist-match";
 import { assessPlausibility } from "@/lib/plausibility";
+import { reverseGeocode } from "@/lib/geocode";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -39,7 +40,10 @@ export async function POST(req: Request) {
   const observedAt = str(form?.get("observedAt"));
   const observedDate = observedAt ? new Date(observedAt) : new Date();
   const bytes = Buffer.from(await photo.arrayBuffer());
-  const checklist = await getChecklist();
+  const [checklist, placeLabel] = await Promise.all([
+    getChecklist(),
+    lat != null && lng != null ? reverseGeocode(lat, lng) : Promise.resolve(null),
+  ]);
 
   try {
     const provider = getIdProvider();
@@ -102,7 +106,11 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({ candidates });
+    return NextResponse.json({
+      candidates,
+      placeLabel,
+      observedAt: observedDate.toISOString(),
+    });
   } catch (err) {
     console.error("identify failed:", err);
     return NextResponse.json(
