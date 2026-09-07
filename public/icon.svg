@@ -1,16 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="112" fill="#3f6f4c"/>
-  <g transform="translate(256 268)" fill="#f6f4ee">
+  <g transform="translate(256 262)">
     <!-- antennae -->
-    <path d="M0 -66 C -18 -100 -40 -110 -58 -104" fill="none" stroke="#f6f4ee" stroke-width="12" stroke-linecap="round"/>
-    <path d="M0 -66 C 18 -100 40 -110 58 -104" fill="none" stroke="#f6f4ee" stroke-width="12" stroke-linecap="round"/>
-    <!-- body -->
-    <ellipse cx="0" cy="6" rx="13" ry="74"/>
-    <!-- upper wings -->
-    <ellipse cx="-84" cy="-40" rx="74" ry="58" transform="rotate(-24 -84 -40)"/>
-    <ellipse cx="84" cy="-40" rx="74" ry="58" transform="rotate(24 84 -40)"/>
-    <!-- lower wings -->
-    <ellipse cx="-62" cy="58" rx="56" ry="46" transform="rotate(20 -62 58)"/>
-    <ellipse cx="62" cy="58" rx="56" ry="46" transform="rotate(-20 62 58)"/>
+    <g fill="none" stroke="#f6f4ee" stroke-width="12" stroke-linecap="round">
+      <path d="M-6 -148 C -20 -176 -44 -184 -62 -176"/>
+      <path d="M6 -148 C 20 -176 44 -184 62 -176"/>
+    </g>
+    <!-- binding spine (behind + in front so the wing seam disappears) -->
+    <rect x="-36" y="-132" width="72" height="266" rx="36" fill="#f6f4ee"/>
+    <!-- wings -->
+    <g fill="#f6f4ee">
+      <path d="M-30 -128 C -30 -150 -72 -166 -138 -166 C -208 -166 -214 -100 -194 -52 C -180 -14 -118 -8 -30 -14 Z"/>
+      <path d="M30 -128 C 30 -150 72 -166 138 -166 C 208 -166 214 -100 194 -52 C 180 -14 118 -8 30 -14 Z"/>
+      <path d="M-30 4 C -92 -2 -152 28 -148 76 C -144 116 -92 138 -54 128 C -26 120 -30 76 -30 38 Z"/>
+      <path d="M30 4 C 92 -2 152 28 148 76 C 144 116 92 138 54 128 C 26 120 30 76 30 38 Z"/>
+    </g>
+    <rect x="-36" y="-132" width="72" height="266" rx="36" fill="#f6f4ee"/>
+    <!-- spiral binding -->
+    <g fill="none" stroke="#3f6f4c" stroke-width="14" stroke-linecap="round">
+      <ellipse cx="0" cy="-108" rx="34" ry="15" transform="rotate(-12 0 -108)"/>
+      <ellipse cx="0" cy="-78" rx="34" ry="15" transform="rotate(-12 0 -78)"/>
+      <ellipse cx="0" cy="-48" rx="34" ry="15" transform="rotate(-12 0 -48)"/>
+      <ellipse cx="0" cy="-18" rx="34" ry="15" transform="rotate(-12 0 -18)"/>
+      <ellipse cx="0" cy="12" rx="34" ry="15" transform="rotate(-12 0 12)"/>
+      <ellipse cx="0" cy="42" rx="34" ry="15" transform="rotate(-12 0 42)"/>
+      <ellipse cx="0" cy="72" rx="34" ry="15" transform="rotate(-12 0 72)"/>
+      <ellipse cx="0" cy="102" rx="34" ry="15" transform="rotate(-12 0 102)"/>
+    </g>
   </g>
 </svg>
