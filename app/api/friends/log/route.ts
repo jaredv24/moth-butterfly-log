@@ -37,8 +37,8 @@ export async function GET(req: Request) {
     ...data,
     friend: {
       userId: friendUserId,
-      nickname: link.nickname,
-      inatUsername: friend?.inatUsername ?? null,
+      name:
+        friend?.username ?? link.nickname ?? friend?.inatUsername ?? "Friend",
     },
   });
 }

@@ -26,3 +26,9 @@ export function isValidUserCode(code: string): boolean {
 export function isValidFriendCode(code: string): boolean {
   return new RegExp(`^PAL-[${ALPHABET}]{8}$`).test(code);
 }
+
+/** Trim + collapse inner whitespace; returns null if it isn't a valid username. */
+export function cleanUsername(raw: string): string | null {
+  const u = raw.trim().replace(/\s+/g, " ");
+  return /^[\p{L}\p{N} ._-]{2,24}$/u.test(u) ? u : null;
+}

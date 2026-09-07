@@ -5,15 +5,22 @@ import QRCode from "qrcode";
 import { useCallback, useEffect, useState } from "react";
 import { useUserCode } from "@/lib/useUserCode";
 
-type Friend = {
+type Following = {
   userId: string;
-  nickname: string | null;
-  inatUsername: string | null;
+  name: string | null;
   addedAt: string;
   sightingsCount: number;
   speciesCount: number;
   lastSightingAt: string | null;
   mutual: boolean;
+};
+type Follower = {
+  userId: string;
+  name: string | null;
+  followedAt: string;
+  speciesCount: number;
+  lastSightingAt: string | null;
+  youFollowBack: boolean;
 };
 
 function ago(iso: string | null): string {
@@ -26,15 +33,15 @@ function ago(iso: string | null): string {
 }
 
 export default function FriendsPage() {
-  const { code, loading } = useUserCode();
+  const { code, username, loading } = useUserCode();
   const [friendCode, setFriendCode] = useState<string | null>(null);
-  const [friends, setFriends] = useState<Friend[]>([]);
+  const [following, setFollowing] = useState<Following[]>([]);
+  const [followers, setFollowers] = useState<Follower[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [qr, setQr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const [input, setInput] = useState("");
-  const [nick, setNick] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -44,7 +51,8 @@ export default function FriendsPage() {
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => {
         setFriendCode(d.friendCode);
-        setFriends(d.friends);
+        setFollowing(d.following);
+        setFollowers(d.followers);
         setStatus("ready");
       })
       .catch(() => setStatus("error"));
@@ -72,7 +80,7 @@ export default function FriendsPage() {
     }
   }
 
-  async function add(e: React.FormEvent) {
+  async function follow(e: React.FormEvent) {
     e.preventDefault();
     if (!code) return;
     setBusy(true);
@@ -81,17 +89,12 @@ export default function FriendsPage() {
       const res = await fetch("/api/friends", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code,
-          friendCode: input.trim().toUpperCase(),
-          nickname: nick.trim() || undefined,
-        }),
+        body: JSON.stringify({ code, friendCode: input.trim().toUpperCase() }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Couldn't add that friend");
+      if (!res.ok) throw new Error(data.error ?? "Couldn't follow that code");
       setInput("");
-      setNick("");
-      setMsg("Friend added.");
+      setMsg("Following.");
       refresh();
     } catch (err) {
       setMsg(err instanceof Error ? err.message : "Something went wrong");
@@ -100,9 +103,9 @@ export default function FriendsPage() {
     }
   }
 
-  async function remove(f: Friend) {
+  async function unfollow(f: { userId: string; name: string | null }) {
     if (!code) return;
-    if (!confirm(`Stop following ${f.nickname ?? "this friend"}?`)) return;
+    if (!confirm(`Stop following ${f.name ?? "this person"}?`)) return;
     await fetch("/api/friends", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -111,15 +114,38 @@ export default function FriendsPage() {
     refresh();
   }
 
+  async function followBack(followerUserId: string) {
+    if (!code) return;
+    await fetch("/api/friends/follow-back", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, followerUserId }),
+    });
+    refresh();
+  }
+
+  const needsUsername =
+    !loading && status === "ready" && !username && followers.length > 0;
+
   return (
     <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Friends</h1>
         <p className="text-sm text-muted">
           Share your friend code and someone can follow your log. Following is
-          one-way — they see everything you&apos;ve logged, including where.
+          one-way — a follower sees everything you&apos;ve logged, including
+          where.
         </p>
       </header>
+
+      {needsUsername && (
+        <Link
+          href="/profile"
+          className="block rounded-xl border border-accent/40 bg-accent/8 p-3 text-sm font-medium text-accent"
+        >
+          Set a display name so friends know it&apos;s you →
+        </Link>
+      )}
 
       <section className="space-y-3 rounded-2xl border border-border bg-surface p-5 text-center">
         <p className="text-xs uppercase tracking-wide text-muted">
@@ -144,82 +170,141 @@ export default function FriendsPage() {
           {copied ? "Copied ✓" : "Copy code"}
         </button>
         <p className="text-[11px] text-muted">
-          This is different from your MOTH- login code and only grants
-          read-only access.
+          Different from your MOTH- login code; grants read-only access only.
         </p>
       </section>
 
       <section className="space-y-3 rounded-2xl border border-border bg-surface p-5">
-        <h2 className="text-sm font-semibold">Follow a friend</h2>
-        <form onSubmit={add} className="space-y-2">
+        <h2 className="text-sm font-semibold">Follow someone</h2>
+        <form onSubmit={follow} className="flex gap-2">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="PAL-XXXXXXXX"
             autoCapitalize="characters"
-            className="w-full rounded-xl border border-border bg-background px-3 py-2 font-mono text-sm uppercase outline-none focus:border-accent"
-          />
-          <input
-            value={nick}
-            onChange={(e) => setNick(e.target.value)}
-            placeholder="Nickname (optional)"
-            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+            className="flex-1 rounded-xl border border-border bg-background px-3 py-2 font-mono text-sm uppercase outline-none focus:border-accent"
           />
           <button
             type="submit"
             disabled={!input.trim() || busy}
-            className="w-full rounded-xl border border-border py-2.5 text-sm font-semibold disabled:opacity-50"
+            className="rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-50"
           >
-            {busy ? "Adding…" : "Follow"}
+            {busy ? "…" : "Follow"}
           </button>
         </form>
         {msg && <p className="text-sm text-accent">{msg}</p>}
       </section>
 
-      <section className="space-y-2">
-        <h2 className="text-sm font-semibold">
-          Following {friends.length > 0 && `(${friends.length})`}
-        </h2>
-        {status === "ready" && friends.length === 0 && (
-          <p className="rounded-xl border border-border bg-surface p-4 text-sm text-muted">
-            Not following anyone yet. Add a friend&apos;s code above.
-          </p>
+      <FriendSection title="Following" count={following.length}>
+        {status === "ready" && following.length === 0 && (
+          <Empty>You&apos;re not following anyone yet.</Empty>
         )}
-        <ul className="space-y-2">
-          {friends.map((f) => (
-            <li
-              key={f.userId}
-              className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3"
-            >
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-border text-lg">
-                👤
+        {following.map((f) => (
+          <li
+            key={f.userId}
+            className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3"
+          >
+            <Avatar />
+            <Link href={`/friend/${f.userId}`} className="min-w-0 flex-1">
+              <NameRow name={f.name} badge={f.mutual ? "mutual" : null} />
+              <div className="text-xs text-muted">
+                {f.speciesCount} species · {ago(f.lastSightingAt)}
               </div>
+            </Link>
+            <button
+              onClick={() => unfollow(f)}
+              className="shrink-0 px-2 text-xs text-muted"
+            >
+              Unfollow
+            </button>
+          </li>
+        ))}
+      </FriendSection>
+
+      <FriendSection title="Followers" count={followers.length}>
+        {status === "ready" && followers.length === 0 && (
+          <Empty>No one is following you yet. Share your code.</Empty>
+        )}
+        {followers.map((f) => (
+          <li
+            key={f.userId}
+            className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3"
+          >
+            <Avatar />
+            {f.youFollowBack ? (
               <Link href={`/friend/${f.userId}`} className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="truncate font-semibold">
-                    {f.nickname ?? f.inatUsername ?? "Friend"}
-                  </span>
-                  {f.mutual && (
-                    <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
-                      mutual
-                    </span>
-                  )}
-                </div>
+                <NameRow name={f.name} badge="mutual" />
                 <div className="text-xs text-muted">
                   {f.speciesCount} species · {ago(f.lastSightingAt)}
                 </div>
               </Link>
+            ) : (
+              <div className="min-w-0 flex-1">
+                <NameRow name={f.name} badge={null} />
+                <div className="text-xs text-muted">follows you</div>
+              </div>
+            )}
+            {!f.youFollowBack && (
               <button
-                onClick={() => remove(f)}
-                aria-label="Unfollow"
-                className="shrink-0 px-2 text-xs text-muted"
+                onClick={() => followBack(f.userId)}
+                className="shrink-0 rounded-lg border border-accent px-3 py-1.5 text-xs font-semibold text-accent"
               >
-                Unfollow
+                Follow back
               </button>
-            </li>
-          ))}
-        </ul>
-      </section>
+            )}
+          </li>
+        ))}
+      </FriendSection>
     </div>
+  );
+}
+
+function FriendSection({
+  title,
+  count,
+  children,
+}: {
+  title: string;
+  count: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-2">
+      <h2 className="text-sm font-semibold">
+        {title} {count > 0 && <span className="text-muted">({count})</span>}
+      </h2>
+      <ul className="space-y-2">{children}</ul>
+    </section>
+  );
+}
+
+function Avatar() {
+  return (
+    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-border text-lg">
+      👤
+    </div>
+  );
+}
+
+function NameRow({ name, badge }: { name: string | null; badge: string | null }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className={`truncate font-semibold ${name ? "" : "text-muted"}`}>
+        {name ?? "Someone (no name set)"}
+      </span>
+      {badge && (
+        <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
+          {badge}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function Empty({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="rounded-xl border border-border bg-surface p-4 text-sm text-muted">
+      {children}
+    </li>
   );
 }

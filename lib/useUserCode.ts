@@ -7,6 +7,7 @@ const COOKIE = "lep_log_code";
 
 type State = {
   code: string | null;
+  username: string | null;
   loading: boolean;
 };
 
@@ -44,7 +45,11 @@ function readStored(): string | null {
  * and stores it. `setCode` lets Settings restore/switch a log.
  */
 export function useUserCode() {
-  const [state, setState] = useState<State>({ code: null, loading: true });
+  const [state, setState] = useState<State>({
+    code: null,
+    username: null,
+    loading: true,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -66,12 +71,12 @@ export function useUserCode() {
             u.searchParams.delete("code");
             window.history.replaceState(null, "", u);
           }
-          setState({ code: data.code, loading: false });
+          setState({ code: data.code, username: data.username ?? null, loading: false });
         } else {
-          setState({ code: stored, loading: false });
+          setState({ code: stored, username: null, loading: false });
         }
       } catch {
-        if (!cancelled) setState({ code: stored, loading: false });
+        if (!cancelled) setState({ code: stored, username: null, loading: false });
       }
     })();
 
@@ -89,9 +94,14 @@ export function useUserCode() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error ?? "Could not use that code");
     persist(data.code);
-    setState({ code: data.code, loading: false });
-    return data as { code: string; created: boolean };
+    setState({ code: data.code, username: data.username ?? null, loading: false });
+    return data as { code: string; created: boolean; username: string | null };
   }, []);
 
-  return { ...state, setCode };
+  const setUsername = useCallback(
+    (username: string | null) => setState((s) => ({ ...s, username })),
+    [],
+  );
+
+  return { ...state, setCode, setUsername };
 }

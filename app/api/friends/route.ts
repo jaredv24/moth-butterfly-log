@@ -18,8 +18,24 @@ import { clientIp, rateLimit } from "@/lib/rate-limit";
 export const runtime = "nodejs";
 
 async function requireUser(code: string) {
-  if (!isValidUserCode(normalizeUserCode(code))) return null;
-  return findUser(normalizeUserCode(code));
+  const c = normalizeUserCode(code);
+  return isValidUserCode(c) ? findUser(c) : null;
+}
+
+/** species / sighting counts + last activity for a set of users */
+async function activity(ids: string[]) {
+  if (!ids.length) return new Map<string, { sightings: number; species: number; last: string | null }>();
+  const rows = await db
+    .select({
+      userId: sightings.userId,
+      sightings: sql<number>`count(*)::int`,
+      species: sql<number>`count(distinct lower(${sightings.identifiedScientific}))::int`,
+      last: sql<string>`max(${sightings.observedAt})`,
+    })
+    .from(sightings)
+    .where(inArray(sightings.userId, ids))
+    .groupBy(sightings.userId);
+  return new Map(rows.map((r) => [r.userId, r]));
 }
 
 export async function GET(req: Request) {
@@ -28,60 +44,60 @@ export async function GET(req: Request) {
 
   const friendCode = await getOrCreateFriendCode(me.id);
 
-  const rows = await db
-    .select({
-      friendUserId: friendships.friendUserId,
-      nickname: friendships.nickname,
-      createdAt: friendships.createdAt,
-      inatUsername: users.inatUsername,
-    })
-    .from(friendships)
-    .innerJoin(users, eq(users.id, friendships.friendUserId))
-    .where(eq(friendships.ownerUserId, me.id))
-    .orderBy(desc(friendships.createdAt));
+  const [followingRows, followerRows] = await Promise.all([
+    db
+      .select({
+        userId: friendships.friendUserId,
+        nickname: friendships.nickname,
+        createdAt: friendships.createdAt,
+        username: users.username,
+        inatUsername: users.inatUsername,
+      })
+      .from(friendships)
+      .innerJoin(users, eq(users.id, friendships.friendUserId))
+      .where(eq(friendships.ownerUserId, me.id))
+      .orderBy(desc(friendships.createdAt)),
+    db
+      .select({
+        userId: friendships.ownerUserId,
+        createdAt: friendships.createdAt,
+        username: users.username,
+        inatUsername: users.inatUsername,
+      })
+      .from(friendships)
+      .innerJoin(users, eq(users.id, friendships.ownerUserId))
+      .where(eq(friendships.friendUserId, me.id))
+      .orderBy(desc(friendships.createdAt)),
+  ]);
 
-  const ids = rows.map((r) => r.friendUserId);
+  const iFollow = new Set(followingRows.map((r) => r.userId));
+  const followMe = new Set(followerRows.map((r) => r.userId));
+  const act = await activity([
+    ...new Set([...iFollow, ...followMe]),
+  ]);
 
-  // per-friend: sighting + species counts, last activity
-  const counts = ids.length
-    ? await db
-        .select({
-          userId: sightings.userId,
-          sightings: sql<number>`count(*)::int`,
-          species: sql<number>`count(distinct lower(${sightings.identifiedScientific}))::int`,
-          last: sql<string>`max(${sightings.observedAt})`,
-        })
-        .from(sightings)
-        .where(inArray(sightings.userId, ids))
-        .groupBy(sightings.userId)
-    : [];
-  const byId = new Map(counts.map((c) => [c.userId, c]));
-
-  // which of them also follow me back (mutual)
-  const backRows = ids.length
-    ? await db
-        .select({ ownerUserId: friendships.ownerUserId })
-        .from(friendships)
-        .where(
-          and(
-            eq(friendships.friendUserId, me.id),
-            inArray(friendships.ownerUserId, ids),
-          ),
-        )
-    : [];
-  const mutual = new Set(backRows.map((b) => b.ownerUserId));
+  const displayName = (username: string | null, inat: string | null, nick?: string | null) =>
+    username ?? nick ?? inat ?? null;
 
   return NextResponse.json({
     friendCode,
-    friends: rows.map((r) => ({
-      userId: r.friendUserId,
-      nickname: r.nickname,
-      inatUsername: r.inatUsername,
+    username: me.username ?? null,
+    following: followingRows.map((r) => ({
+      userId: r.userId,
+      name: displayName(r.username, r.inatUsername, r.nickname),
       addedAt: r.createdAt.toISOString(),
-      sightingsCount: byId.get(r.friendUserId)?.sightings ?? 0,
-      speciesCount: byId.get(r.friendUserId)?.species ?? 0,
-      lastSightingAt: byId.get(r.friendUserId)?.last ?? null,
-      mutual: mutual.has(r.friendUserId),
+      sightingsCount: act.get(r.userId)?.sightings ?? 0,
+      speciesCount: act.get(r.userId)?.species ?? 0,
+      lastSightingAt: act.get(r.userId)?.last ?? null,
+      mutual: followMe.has(r.userId),
+    })),
+    followers: followerRows.map((r) => ({
+      userId: r.userId,
+      name: displayName(r.username, r.inatUsername),
+      followedAt: r.createdAt.toISOString(),
+      speciesCount: act.get(r.userId)?.species ?? 0,
+      lastSightingAt: act.get(r.userId)?.last ?? null,
+      youFollowBack: iFollow.has(r.userId),
     })),
   });
 }
@@ -89,7 +105,6 @@ export async function GET(req: Request) {
 const addSchema = z.object({
   code: z.string(),
   friendCode: z.string(),
-  nickname: z.string().trim().max(40).optional(),
 });
 
 export async function POST(req: Request) {
@@ -120,15 +135,8 @@ export async function POST(req: Request) {
 
   await db
     .insert(friendships)
-    .values({
-      ownerUserId: me.id,
-      friendUserId: target.id,
-      nickname: parsed.data.nickname || null,
-    })
-    .onConflictDoUpdate({
-      target: [friendships.ownerUserId, friendships.friendUserId],
-      set: { nickname: parsed.data.nickname || null },
-    });
+    .values({ ownerUserId: me.id, friendUserId: target.id })
+    .onConflictDoNothing();
 
   return NextResponse.json({ ok: true, friendUserId: target.id });
 }

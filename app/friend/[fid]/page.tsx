@@ -11,7 +11,7 @@ import type { LogResponse } from "@/lib/types";
 
 type Tab = "log" | "map";
 type FriendLog = LogResponse & {
-  friend: { userId: string; nickname: string | null; inatUsername: string | null };
+  friend: { userId: string; name: string };
 };
 
 export default function FriendLogPage() {
@@ -46,8 +46,7 @@ export default function FriendLogPage() {
     refetch();
   }, [refetch]);
 
-  const name =
-    data?.friend.nickname ?? data?.friend.inatUsername ?? "Friend";
+  const name = data?.friend.name ?? "Friend";
 
   if (status === "forbidden") {
     return (

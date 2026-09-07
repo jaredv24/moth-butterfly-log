@@ -39,7 +39,6 @@ export default function IdentifyPage() {
   const [geoState, setGeoState] = useState<
     "idle" | "asking" | "ok" | "denied" | "photo"
   >("idle");
-  const [timeFromPhoto, setTimeFromPhoto] = useState(false);
   const [idMeta, setIdMeta] = useState<{
     placeLabel: string | null;
     observedAt: string;
@@ -82,7 +81,6 @@ export default function IdentifyPage() {
     setCandidates(null);
     setPicking(false);
     setDone(null);
-    setTimeFromPhoto(false);
     setGeoState("idle");
     setIdMeta(null);
     photoRef.current = null;
@@ -142,7 +140,6 @@ export default function IdentifyPage() {
       }
       if (meta.takenAt) {
         observedAtRef.current = meta.takenAt;
-        setTimeFromPhoto(true);
       }
 
       const blob = await shrinkImage(file);
@@ -317,14 +314,8 @@ export default function IdentifyPage() {
             <img src={photoPreview} alt="Your photo" className="max-h-72 w-full object-cover" />
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 text-xs text-muted">
               {geoState === "asking" && !idMeta && <span>📍 Getting location…</span>}
-              {idMeta?.placeLabel ? (
-                <span>
-                  📍 {idMeta.placeLabel}
-                  {geoState === "photo" ? " (from photo)" : ""}
-                </span>
-              ) : idMeta ? (
-                <span>📍 No location</span>
-              ) : null}
+              {idMeta?.placeLabel && <span>📍 {idMeta.placeLabel}</span>}
+              {idMeta && !idMeta.placeLabel && <span>📍 No location</span>}
               {idMeta && (
                 <span>
                   🕑{" "}
@@ -333,7 +324,6 @@ export default function IdentifyPage() {
                     day: "numeric",
                     year: "numeric",
                   })}
-                  {timeFromPhoto ? " (from photo)" : ""}
                 </span>
               )}
             </div>
