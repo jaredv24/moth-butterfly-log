@@ -34,7 +34,6 @@ export class KindwiseProvider implements IdProvider {
 
     const body: Record<string, unknown> = {
       images: [image.toString("base64")],
-      similar_images: false,
     };
     if (opts.lat != null && opts.lng != null) {
       body.latitude = opts.lat;
