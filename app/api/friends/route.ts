@@ -22,15 +22,14 @@ async function requireUser(code: string) {
   return isValidUserCode(c) ? findUser(c) : null;
 }
 
-/** species / sighting counts + last activity for a set of users */
+/** species / sighting counts for a set of users */
 async function activity(ids: string[]) {
-  if (!ids.length) return new Map<string, { sightings: number; species: number; last: string | null }>();
+  if (!ids.length) return new Map<string, { sightings: number; species: number }>();
   const rows = await db
     .select({
       userId: sightings.userId,
       sightings: sql<number>`count(*)::int`,
       species: sql<number>`count(distinct lower(${sightings.identifiedScientific}))::int`,
-      last: sql<string>`max(${sightings.observedAt})`,
     })
     .from(sightings)
     .where(inArray(sightings.userId, ids))
@@ -52,6 +51,7 @@ export async function GET(req: Request) {
         createdAt: friendships.createdAt,
         username: users.username,
         inatUsername: users.inatUsername,
+        lastSeenAt: users.lastSeenAt,
       })
       .from(friendships)
       .innerJoin(users, eq(users.id, friendships.friendUserId))
@@ -63,6 +63,7 @@ export async function GET(req: Request) {
         createdAt: friendships.createdAt,
         username: users.username,
         inatUsername: users.inatUsername,
+        lastSeenAt: users.lastSeenAt,
       })
       .from(friendships)
       .innerJoin(users, eq(users.id, friendships.ownerUserId))
@@ -88,7 +89,7 @@ export async function GET(req: Request) {
       addedAt: r.createdAt.toISOString(),
       sightingsCount: act.get(r.userId)?.sightings ?? 0,
       speciesCount: act.get(r.userId)?.species ?? 0,
-      lastSightingAt: act.get(r.userId)?.last ?? null,
+      lastActiveAt: r.lastSeenAt?.toISOString() ?? null,
       mutual: followMe.has(r.userId),
     })),
     followers: followerRows.map((r) => ({
@@ -96,7 +97,7 @@ export async function GET(req: Request) {
       name: displayName(r.username, r.inatUsername),
       followedAt: r.createdAt.toISOString(),
       speciesCount: act.get(r.userId)?.species ?? 0,
-      lastSightingAt: act.get(r.userId)?.last ?? null,
+      lastActiveAt: r.lastSeenAt?.toISOString() ?? null,
       youFollowBack: iFollow.has(r.userId),
     })),
   });

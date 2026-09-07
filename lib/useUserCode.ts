@@ -8,10 +8,12 @@ const COOKIE = "lep_log_code";
 type State = {
   code: string | null;
   username: string | null;
+  hasPassword: boolean;
   loading: boolean;
+  /** a code was found but needs a password on this (new) device */
+  needsPassword: string | null;
 };
 
-/** localStorage + a 1-year cookie, so clearing one doesn't lose the log. */
 function persist(code: string) {
   try {
     window.localStorage.setItem(KEY, code);
@@ -26,10 +28,8 @@ function persist(code: string) {
 }
 
 function readStored(): string | null {
-  // A ?code= in the URL (e.g. from a shared QR) wins and adopts that log.
   const fromUrl = new URLSearchParams(window.location.search).get("code");
   if (fromUrl) return fromUrl.trim().toUpperCase();
-
   try {
     const ls = window.localStorage.getItem(KEY);
     if (ls) return ls;
@@ -40,15 +40,30 @@ function readStored(): string | null {
   return m ? decodeURIComponent(m[1]) : null;
 }
 
-/**
- * Owns the local user code. On first load it asks the server for a fresh code
- * and stores it. `setCode` lets Settings restore/switch a log.
- */
+function stripUrlCode() {
+  if (new URLSearchParams(window.location.search).has("code")) {
+    const u = new URL(window.location.href);
+    u.searchParams.delete("code");
+    window.history.replaceState(null, "", u);
+  }
+}
+
+async function resolve(body: Record<string, string>) {
+  const res = await fetch("/api/user", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return { res, data: await res.json().catch(() => ({})) };
+}
+
 export function useUserCode() {
   const [state, setState] = useState<State>({
     code: null,
     username: null,
+    hasPassword: false,
     loading: true,
+    needsPassword: null,
   });
 
   useEffect(() => {
@@ -57,26 +72,22 @@ export function useUserCode() {
 
     (async () => {
       try {
-        const res = await fetch("/api/user", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(stored ? { code: stored } : {}),
-        });
-        const data = await res.json();
+        const { res, data } = await resolve(stored ? { code: stored } : {});
         if (cancelled) return;
+        if (res.status === 401 && data.needsPassword) {
+          setState({ code: null, username: null, hasPassword: false, loading: false, needsPassword: data.code ?? stored });
+          return;
+        }
         if (data.code) {
           persist(data.code);
-          if (new URLSearchParams(window.location.search).has("code")) {
-            const u = new URL(window.location.href);
-            u.searchParams.delete("code");
-            window.history.replaceState(null, "", u);
-          }
-          setState({ code: data.code, username: data.username ?? null, loading: false });
+          stripUrlCode();
+          setState({ code: data.code, username: data.username ?? null, hasPassword: !!data.hasPassword, loading: false, needsPassword: null });
         } else {
-          setState({ code: stored, username: null, loading: false });
+          setState({ code: stored, username: null, hasPassword: false, loading: false, needsPassword: null });
         }
       } catch {
-        if (!cancelled) setState({ code: stored, username: null, loading: false });
+        if (!cancelled)
+          setState({ code: stored, username: null, hasPassword: false, loading: false, needsPassword: null });
       }
     })();
 
@@ -85,23 +96,40 @@ export function useUserCode() {
     };
   }, []);
 
-  const setCode = useCallback(async (raw: string) => {
-    const res = await fetch("/api/user", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: raw }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error ?? "Could not use that code");
+  const setCode = useCallback(async (raw: string, password?: string) => {
+    const { res, data } = await resolve(
+      password ? { code: raw, password } : { code: raw },
+    );
+    if (res.status === 401 && data.needsPassword) {
+      const e = new Error(data.error ?? "This log is password-protected.");
+      (e as Error & { needsPassword?: boolean }).needsPassword = true;
+      throw e;
+    }
+    if (!res.ok || !data.code) throw new Error(data.error ?? "Could not use that code");
     persist(data.code);
-    setState({ code: data.code, username: data.username ?? null, loading: false });
+    stripUrlCode();
+    setState({ code: data.code, username: data.username ?? null, hasPassword: !!data.hasPassword, loading: false, needsPassword: null });
     return data as { code: string; created: boolean; username: string | null };
   }, []);
+
+  /** answer the password prompt for the pending code */
+  const submitPassword = useCallback(
+    async (password: string) => {
+      if (!state.needsPassword) return;
+      await setCode(state.needsPassword, password);
+    },
+    [state.needsPassword, setCode],
+  );
 
   const setUsername = useCallback(
     (username: string | null) => setState((s) => ({ ...s, username })),
     [],
   );
 
-  return { ...state, setCode, setUsername };
+  const setHasPassword = useCallback(
+    (hasPassword: boolean) => setState((s) => ({ ...s, hasPassword })),
+    [],
+  );
+
+  return { ...state, setCode, submitPassword, setUsername, setHasPassword };
 }

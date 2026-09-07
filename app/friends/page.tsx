@@ -11,7 +11,7 @@ type Following = {
   addedAt: string;
   sightingsCount: number;
   speciesCount: number;
-  lastSightingAt: string | null;
+  lastActiveAt: string | null;
   mutual: boolean;
 };
 type Follower = {
@@ -19,14 +19,17 @@ type Follower = {
   name: string | null;
   followedAt: string;
   speciesCount: number;
-  lastSightingAt: string | null;
+  lastActiveAt: string | null;
   youFollowBack: boolean;
 };
 
-function ago(iso: string | null): string {
-  if (!iso) return "no sightings yet";
-  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
-  if (days <= 0) return "active today";
+function active(iso: string | null): string {
+  if (!iso) return "not opened the app yet";
+  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
+  if (mins < 60) return "active just now";
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `active ${hours}h ago`;
+  const days = Math.floor(hours / 24);
   if (days === 1) return "active yesterday";
   if (days < 30) return `active ${days}d ago`;
   return `active ${Math.floor(days / 30)}mo ago`;
@@ -208,7 +211,7 @@ export default function FriendsPage() {
             <Link href={`/friend/${f.userId}`} className="min-w-0 flex-1">
               <NameRow name={f.name} badge={f.mutual ? "mutual" : null} />
               <div className="text-xs text-muted">
-                {f.speciesCount} species · {ago(f.lastSightingAt)}
+                {f.speciesCount} species · {active(f.lastActiveAt)}
               </div>
             </Link>
             <button
@@ -235,7 +238,7 @@ export default function FriendsPage() {
               <Link href={`/friend/${f.userId}`} className="min-w-0 flex-1">
                 <NameRow name={f.name} badge="mutual" />
                 <div className="text-xs text-muted">
-                  {f.speciesCount} species · {ago(f.lastSightingAt)}
+                  {f.speciesCount} species · {active(f.lastActiveAt)}
                 </div>
               </Link>
             ) : (

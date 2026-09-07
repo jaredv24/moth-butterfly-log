@@ -21,6 +21,10 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
+  // bumped every time the app loads for this user (for the friends "active" label)
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
+  // optional — only checked when adopting the code on a new device
+  passwordHash: text("password_hash"),
   // iNaturalist connection (optional, opt-in)
   inatAccessToken: text("inat_access_token"), // AES-GCM encrypted
   inatUsername: text("inat_username"),

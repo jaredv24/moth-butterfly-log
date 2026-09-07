@@ -8,12 +8,16 @@ import {
 } from "node:crypto";
 
 /**
- * AES-256-GCM for tokens at rest. Key is derived from TOKEN_SECRET (any string).
- * Format: base64(iv[12] | authTag[16] | ciphertext).
+ * Signing/encryption key. Uses TOKEN_SECRET when set (recommended); otherwise
+ * derives a stable key from DATABASE_URL so device auth and token encryption
+ * work out of the box. Set TOKEN_SECRET explicitly to harden.
  */
 function key(): Buffer {
-  const secret = process.env.TOKEN_SECRET;
-  if (!secret) throw new Error("TOKEN_SECRET is not set");
+  const secret =
+    process.env.TOKEN_SECRET ??
+    (process.env.DATABASE_URL
+      ? `db:${process.env.DATABASE_URL}`
+      : "moth-butterfly-log-dev-fallback");
   return createHash("sha256").update(secret).digest();
 }
 
@@ -32,6 +36,30 @@ export function decryptSecret(payload: string): string {
   const decipher = createDecipheriv("aes-256-gcm", key(), iv);
   decipher.setAuthTag(tag);
   return Buffer.concat([decipher.update(enc), decipher.final()]).toString("utf8");
+}
+
+/**
+ * A device-auth token: HMAC-signed "<userId>.<issuedMs>". Proves this device
+ * has already authenticated for that user, so we don't re-prompt for a password.
+ */
+export function signDeviceToken(userId: string): string {
+  const body = `${userId}.${Date.now()}`;
+  const sig = createHmac("sha256", key()).update(body).digest("base64url");
+  return `${Buffer.from(body).toString("base64url")}.${sig}`;
+}
+
+export function readDeviceToken(token: string): string | null {
+  const [b64, sig] = token.split(".");
+  if (!b64 || !sig) return null;
+  const body = Buffer.from(b64, "base64url").toString("utf8");
+  const expected = createHmac("sha256", key()).update(body).digest("base64url");
+  if (
+    sig.length !== expected.length ||
+    !timingSafeEqual(Buffer.from(sig), Buffer.from(expected))
+  ) {
+    return null;
+  }
+  return body.split(".")[0] || null; // userId
 }
 
 /** Signed, time-limited value for OAuth `state`. */
