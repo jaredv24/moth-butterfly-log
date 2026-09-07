@@ -6,10 +6,12 @@ species carries a badge showing **where** you were and **when** you saw it.
 
 - **No accounts.** Each device gets an auto-generated code like `MOTH-7X2Q4A`;
   that code is the key to your log. Paste it on another device to sync.
-- **Identification** runs through a provider abstraction. The default `mock`
-  provider returns deterministic candidates from the checklist so the whole flow
-  works with zero credentials. Switch to `inaturalist` for real Computer Vision
-  IDs (see below).
+- **Identification** runs through a provider abstraction (`lib/id-provider/`):
+  - `mock` (default) — deterministic candidates from the checklist, no keys.
+  - `kindwise` — the [Kindwise insect.id API](https://www.kindwise.com/insect-id)
+    (recommended for real use). Set `ID_PROVIDER=kindwise` + `KINDWISE_API_KEY`.
+  - `inaturalist` — code exists, but iNaturalist's CV API is **not public** and
+    needs case-by-case approval from their staff. Don't rely on it.
 - **Checklist** (`data/checklist.json`, 2,489 species) is generated from the
   public iNaturalist API — every North American butterfly plus the ~900
   most-observed moths, tagged by family.
@@ -43,27 +45,28 @@ needed.
 | `npm test` | Vitest unit tests |
 | `npm run build` | production build |
 
-## Switching to real iNaturalist identification
+## Real identification (Kindwise insect.id)
 
-1. Create an OAuth application at
-   <https://www.inaturalist.org/oauth/applications> (any redirect URI).
-2. Set in `.env` / Vercel project env:
+1. Sign up at <https://admin.kindwise.com/signup> (100 free credits, no card).
+2. In the admin panel, create an API key **for the `insect.id` product**.
+3. Set the env vars (locally in `.env`, in production via `vercel env add`):
 
    ```
-   ID_PROVIDER=inaturalist
-   INAT_APP_ID=...
-   INAT_APP_SECRET=...
-   INAT_USERNAME=your-inat-login
-   INAT_PASSWORD=your-inat-password
+   ID_PROVIDER=kindwise
+   KINDWISE_API_KEY=...
    ```
 
-The server does an OAuth password grant, exchanges it for a 24-hour JWT (cached
-in memory), and calls `POST /v1/computervision/score_image`.
+Each identification spends one credit. The provider sends the photo (plus
+lat/lng when available) to `POST /api/v1/identification` and maps
+`result.classification.suggestions[]` to candidates, which are then matched
+against the checklist by scientific name / genus.
 
-> **Note:** iNaturalist's Computer Vision API is not an officially public API.
-> It works with a normal account token but rate limits and terms are a gray
-> area — review <https://www.inaturalist.org/pages/api+reference> before running
-> this in production or at volume.
+### iNaturalist (not recommended)
+
+`lib/id-provider/inaturalist.ts` implements the OAuth-password → JWT →
+`score_image` flow, but iNaturalist's computer-vision API is **not publicly
+available** — access is granted case-by-case by their staff. Treat this
+provider as unusable unless you have explicit approval.
 
 ## Deploying to Vercel
 

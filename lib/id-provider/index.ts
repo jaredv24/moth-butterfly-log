@@ -1,4 +1,5 @@
 import { INaturalistProvider } from "./inaturalist";
+import { KindwiseProvider } from "./kindwise";
 import { MockProvider } from "./mock";
 import type { IdProvider } from "./types";
 
@@ -9,6 +10,11 @@ let instance: IdProvider | null = null;
 export function getIdProvider(): IdProvider {
   if (instance) return instance;
   const choice = (process.env.ID_PROVIDER ?? "mock").toLowerCase();
-  instance = choice === "inaturalist" ? new INaturalistProvider() : new MockProvider();
+  instance =
+    choice === "kindwise"
+      ? new KindwiseProvider()
+      : choice === "inaturalist"
+        ? new INaturalistProvider()
+        : new MockProvider();
   return instance;
 }
