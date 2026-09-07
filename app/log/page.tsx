@@ -130,20 +130,28 @@ export default function LogPage() {
       )}
 
       {onList.length > 0 && (
-        <ul className="space-y-3">
-          {onList.map((e) => (
-            <LogCard
-              key={e.id}
-              entry={e}
-              open={openId === e.id}
-              busy={busyId === e.id}
-              onOpen={() => setSheetFor(e.identifiedScientific)}
-              onToggle={() => setOpenId(openId === e.id ? null : e.id)}
-              onChange={() => setPickFor(e)}
-              onDelete={() => del(e)}
-            />
-          ))}
-        </ul>
+        <section className="space-y-3">
+          {offGroups.length > 0 && (
+            <h2 className="text-sm font-semibold">
+              Butterflies &amp; moths{" "}
+              <span className="font-normal text-muted">· {onList.length}</span>
+            </h2>
+          )}
+          <ul className="space-y-3">
+            {onList.map((e) => (
+              <LogCard
+                key={e.id}
+                entry={e}
+                open={openId === e.id}
+                busy={busyId === e.id}
+                onOpen={() => setSheetFor(e.identifiedScientific)}
+                onToggle={() => setOpenId(openId === e.id ? null : e.id)}
+                onChange={() => setPickFor(e)}
+                onDelete={() => del(e)}
+              />
+            ))}
+          </ul>
+        </section>
       )}
 
       {offGroups.map(([group, rows]) => (
