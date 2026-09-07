@@ -24,6 +24,18 @@ function formatDate(iso: string) {
 
 function FitBounds({ points }: { points: MapPoint[] }) {
   const map = useMap();
+
+  // Leaflet needs its container's real size; recalc after mount + on resize.
+  useEffect(() => {
+    const fix = () => map.invalidateSize();
+    const t = setTimeout(fix, 150);
+    window.addEventListener("resize", fix);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("resize", fix);
+    };
+  }, [map]);
+
   useEffect(() => {
     if (!points.length) return;
     if (points.length === 1) {
