@@ -42,3 +42,8 @@ next-env.d.ts
 .pglite/
 public/uploads/
 .env
+
+# Vercel marketplace agent skills
+.agents/
+.claude/skills/
+skills-lock.json
