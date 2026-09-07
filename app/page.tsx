@@ -301,7 +301,6 @@ export default function IdentifyPage() {
         ref={fileInput}
         type="file"
         accept="image/*"
-        capture="environment"
         className="hidden"
         onChange={onPick}
       />
