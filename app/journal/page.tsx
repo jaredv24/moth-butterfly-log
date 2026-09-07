@@ -69,7 +69,7 @@ function Journal() {
                 : "border-border bg-surface"
             }`}
           >
-            {t === "log" ? "🗒️ Log" : "📖 Checklist"}
+            {t === "log" ? "Log" : "Checklist"}
           </button>
         ))}
       </div>

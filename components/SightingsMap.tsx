@@ -84,6 +84,14 @@ export default function SightingsMap({ points }: { points: MapPoint[] }) {
       style={{ background: dark ? "#16150f" : "#f6f4ee" }}
     >
       <TileLayer key={dark ? "dark" : "light"} url={tiles} attribution={attribution} maxZoom={18} />
+      {dark && (
+        // place + road labels on top of the label-light dark canvas
+        <TileLayer
+          key="dark-labels"
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+          maxZoom={18}
+        />
+      )}
       <FitBounds points={points} />
       {points.map((p, i) => (
         <CircleMarker

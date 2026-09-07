@@ -39,6 +39,7 @@ export async function GET(req: Request) {
       userId: friendUserId,
       name:
         friend?.username ?? link.nickname ?? friend?.inatUsername ?? "Friend",
+      avatarUrl: friend?.avatarUrl ?? null,
     },
   });
 }

@@ -11,7 +11,7 @@ import type { LogResponse } from "@/lib/types";
 
 type Tab = "log" | "map";
 type FriendLog = LogResponse & {
-  friend: { userId: string; name: string };
+  friend: { userId: string; name: string; avatarUrl: string | null };
 };
 
 export default function FriendLogPage() {
@@ -62,15 +62,29 @@ export default function FriendLogPage() {
   return (
     <div className="space-y-4">
       <BackLink />
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">👤 {name}</h1>
-        <p className="text-sm text-muted">
-          {status === "ready"
-            ? `${data!.stats.butterfliesSeen + data!.stats.mothsSeen + data!.stats.otherSpecies} species · read-only`
-            : status === "error"
-              ? "Couldn't load this log."
-              : "Loading…"}
-        </p>
+      <header className="flex items-center gap-3">
+        {data?.friend.avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={data.friend.avatarUrl}
+            alt=""
+            className="h-12 w-12 shrink-0 rounded-full object-cover"
+          />
+        ) : (
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-border">
+            👤
+          </div>
+        )}
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">{name}</h1>
+          <p className="text-sm text-muted">
+            {status === "ready"
+              ? `${data!.stats.butterfliesSeen + data!.stats.mothsSeen + data!.stats.otherSpecies} species · read-only`
+              : status === "error"
+                ? "Couldn't load this log."
+                : "Loading…"}
+          </p>
+        </div>
       </header>
 
       {data && <LifeListCard stats={data.stats} />}
@@ -86,7 +100,7 @@ export default function FriendLogPage() {
                 : "border-border bg-surface"
             }`}
           >
-            {t === "log" ? "🗒️ Log" : "🗺️ Map"}
+            {t === "log" ? "Log" : "Map"}
           </button>
         ))}
       </div>

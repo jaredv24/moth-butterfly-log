@@ -51,6 +51,7 @@ export async function GET(req: Request) {
         createdAt: friendships.createdAt,
         username: users.username,
         inatUsername: users.inatUsername,
+        avatarUrl: users.avatarUrl,
         lastSeenAt: users.lastSeenAt,
       })
       .from(friendships)
@@ -63,6 +64,7 @@ export async function GET(req: Request) {
         createdAt: friendships.createdAt,
         username: users.username,
         inatUsername: users.inatUsername,
+        avatarUrl: users.avatarUrl,
         lastSeenAt: users.lastSeenAt,
       })
       .from(friendships)
@@ -86,6 +88,7 @@ export async function GET(req: Request) {
     following: followingRows.map((r) => ({
       userId: r.userId,
       name: displayName(r.username, r.inatUsername, r.nickname),
+      avatarUrl: r.avatarUrl,
       addedAt: r.createdAt.toISOString(),
       sightingsCount: act.get(r.userId)?.sightings ?? 0,
       speciesCount: act.get(r.userId)?.species ?? 0,
@@ -95,6 +98,7 @@ export async function GET(req: Request) {
     followers: followerRows.map((r) => ({
       userId: r.userId,
       name: displayName(r.username, r.inatUsername),
+      avatarUrl: r.avatarUrl,
       followedAt: r.createdAt.toISOString(),
       speciesCount: act.get(r.userId)?.species ?? 0,
       lastActiveAt: r.lastSeenAt?.toISOString() ?? null,

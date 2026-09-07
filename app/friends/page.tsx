@@ -8,6 +8,7 @@ import { useUserCode } from "@/lib/useUserCode";
 type Following = {
   userId: string;
   name: string | null;
+  avatarUrl: string | null;
   addedAt: string;
   sightingsCount: number;
   speciesCount: number;
@@ -17,6 +18,7 @@ type Following = {
 type Follower = {
   userId: string;
   name: string | null;
+  avatarUrl: string | null;
   followedAt: string;
   speciesCount: number;
   lastActiveAt: string | null;
@@ -207,7 +209,7 @@ export default function FriendsPage() {
             key={f.userId}
             className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3"
           >
-            <Avatar />
+            <Avatar url={f.avatarUrl} />
             <Link href={`/friend/${f.userId}`} className="min-w-0 flex-1">
               <NameRow name={f.name} badge={f.mutual ? "mutual" : null} />
               <div className="text-xs text-muted">
@@ -233,7 +235,7 @@ export default function FriendsPage() {
             key={f.userId}
             className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3"
           >
-            <Avatar />
+            <Avatar url={f.avatarUrl} />
             {f.youFollowBack ? (
               <Link href={`/friend/${f.userId}`} className="min-w-0 flex-1">
                 <NameRow name={f.name} badge="mutual" />
@@ -281,9 +283,19 @@ function FriendSection({
   );
 }
 
-function Avatar() {
+function Avatar({ url }: { url?: string | null }) {
+  if (url) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={url}
+        alt=""
+        className="h-10 w-10 shrink-0 rounded-full object-cover"
+      />
+    );
+  }
   return (
-    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-border text-lg">
+    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-border text-sm text-muted">
       👤
     </div>
   );

@@ -36,6 +36,21 @@ function withDeviceCookie(res: NextResponse, userId: string): NextResponse {
   return res;
 }
 
+/** Read the current profile (for the Profile screen). */
+export async function GET(req: Request) {
+  const code = normalizeUserCode(new URL(req.url).searchParams.get("code") ?? "");
+  if (!isValidUserCode(code)) {
+    return NextResponse.json({ error: "invalid code" }, { status: 400 });
+  }
+  const user = await findUser(code);
+  if (!user) return NextResponse.json({ error: "unknown code" }, { status: 404 });
+  return NextResponse.json({
+    username: user.username ?? null,
+    avatarUrl: user.avatarUrl ?? null,
+    hasPassword: !!user.passwordHash,
+  });
+}
+
 export async function POST(req: Request) {
   const limit = await rateLimit("user", clientIp(req), 300, 3600);
   if (!limit.ok) {
@@ -87,6 +102,7 @@ export async function POST(req: Request) {
       code: user.code,
       created: user.created,
       username: full?.username ?? null,
+      avatarUrl: full?.avatarUrl ?? null,
       hasPassword: !!full?.passwordHash,
     }),
     user.id,

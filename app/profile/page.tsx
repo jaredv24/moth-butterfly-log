@@ -1,7 +1,7 @@
 "use client";
 
 import QRCode from "qrcode";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { InatConnect } from "@/components/InatConnect";
 import { useUserCode } from "@/lib/useUserCode";
 
@@ -20,6 +20,49 @@ export default function SettingsPage() {
   const [pw, setPw] = useState("");
   const [pwMsg, setPwMsg] = useState<string | null>(null);
   const [pwBusy, setPwBusy] = useState(false);
+
+  // avatar
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const avatarInput = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!code) return;
+    fetch(`/api/user?code=${code}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setAvatarUrl(d.avatarUrl));
+  }, [code]);
+
+  async function uploadAvatar(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !code) return;
+    setAvatarBusy(true);
+    try {
+      const form = new FormData();
+      form.append("photo", file);
+      form.append("code", code);
+      const res = await fetch("/api/user/avatar", { method: "POST", body: form });
+      const data = await res.json();
+      if (res.ok) setAvatarUrl(data.avatarUrl);
+    } finally {
+      setAvatarBusy(false);
+      if (avatarInput.current) avatarInput.current.value = "";
+    }
+  }
+
+  async function removeAvatar() {
+    if (!code) return;
+    setAvatarBusy(true);
+    try {
+      await fetch("/api/user/avatar", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      setAvatarUrl(null);
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
 
   async function savePassword(remove: boolean) {
     if (!code) return;
@@ -123,6 +166,50 @@ export default function SettingsPage() {
           you lose it — save it somewhere safe.
         </p>
       </header>
+
+      <section className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-5">
+        {avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={avatarUrl}
+            alt="Your photo"
+            className="h-16 w-16 shrink-0 rounded-full object-cover"
+          />
+        ) : (
+          <div className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-border text-2xl">
+            👤
+          </div>
+        )}
+        <div className="space-y-1">
+          <h2 className="text-sm font-semibold">Photo</h2>
+          <p className="text-xs text-muted">Shown to your friends.</p>
+          <div className="flex gap-3 pt-1 text-sm font-medium">
+            <button
+              onClick={() => avatarInput.current?.click()}
+              disabled={avatarBusy}
+              className="text-accent disabled:opacity-50"
+            >
+              {avatarBusy ? "…" : avatarUrl ? "Change" : "Upload"}
+            </button>
+            {avatarUrl && (
+              <button
+                onClick={removeAvatar}
+                disabled={avatarBusy}
+                className="text-muted disabled:opacity-50"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+        </div>
+        <input
+          ref={avatarInput}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={uploadAvatar}
+        />
+      </section>
 
       <section className="space-y-3 rounded-2xl border border-border bg-surface p-5">
         <h2 className="text-sm font-semibold">Display name</h2>

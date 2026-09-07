@@ -179,7 +179,7 @@ export function ChecklistView({ code }: { code: string | null }) {
                 : "border-border bg-surface"
             }`}
           >
-            {g === "butterfly" ? "🦋 Butterflies" : "🌙 Moths"}
+            {g === "butterfly" ? "Butterflies" : "Moths"}
           </button>
         ))}
       </div>

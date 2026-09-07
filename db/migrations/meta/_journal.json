@@ -57,6 +57,13 @@
       "when": 1788762259670,
       "tag": "0007_password",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788763255488,
+      "tag": "0008_avatar",
+      "breakpoints": true
     }
   ]
 }

@@ -2,13 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  IconFriends,
+  IconIdentify,
+  IconJournal,
+  IconMap,
+  IconProfile,
+} from "@/components/TabIcons";
 
 const TABS = [
-  { href: "/", label: "Identify", icon: "📸", match: (p: string) => p === "/" },
+  {
+    href: "/",
+    label: "Identify",
+    Icon: IconIdentify,
+    match: (p: string) => p === "/",
+  },
   {
     href: "/journal",
     label: "Journal",
-    icon: "📖",
+    Icon: IconJournal,
     match: (p: string) =>
       p.startsWith("/journal") ||
       p.startsWith("/log") ||
@@ -17,14 +29,19 @@ const TABS = [
   {
     href: "/friends",
     label: "Friends",
-    icon: "👥",
+    Icon: IconFriends,
     match: (p: string) => p.startsWith("/friend"),
   },
-  { href: "/map", label: "Map", icon: "🗺️", match: (p: string) => p.startsWith("/map") },
+  {
+    href: "/map",
+    label: "Map",
+    Icon: IconMap,
+    match: (p: string) => p.startsWith("/map"),
+  },
   {
     href: "/profile",
     label: "Profile",
-    icon: "👤",
+    Icon: IconProfile,
     match: (p: string) => p.startsWith("/profile") || p.startsWith("/settings"),
   },
 ];
@@ -34,18 +51,18 @@ export function BottomNav() {
   return (
     <nav className="shrink-0 border-t border-border bg-surface">
       <ul className="mx-auto flex max-w-lg items-stretch justify-around pb-[env(safe-area-inset-bottom)]">
-        {TABS.map((tab) => {
-          const active = tab.match(pathname);
+        {TABS.map(({ href, label, Icon, match }) => {
+          const active = match(pathname);
           return (
-            <li key={tab.href} className="flex-1">
+            <li key={href} className="flex-1">
               <Link
-                href={tab.href}
-                className={`flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors ${
+                href={href}
+                className={`flex flex-col items-center gap-1 py-2 text-[11px] font-medium transition-colors ${
                   active ? "text-accent" : "text-muted"
                 }`}
               >
-                <span className="text-lg leading-none">{tab.icon}</span>
-                {tab.label}
+                <Icon className="h-6 w-6" />
+                {label}
               </Link>
             </li>
           );

@@ -16,6 +16,7 @@ export const users = pgTable("users", {
   code: text("code").notNull().unique(),
   // display name for friends — not unique, not used for login
   username: text("username"),
+  avatarUrl: text("avatar_url"),
   // shareable read-only follow code, minted on first use
   friendCode: text("friend_code").unique(),
   createdAt: timestamp("created_at", { withTimezone: true })
