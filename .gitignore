@@ -47,3 +47,4 @@ public/uploads/
 .agents/
 .claude/skills/
 skills-lock.json
+.env.vercel-pull

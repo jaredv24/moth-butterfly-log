@@ -28,7 +28,6 @@ export type Candidate = {
 };
 
 export type IdentifyResponse = {
-  photoUrl: string;
   candidates: Candidate[];
 };
 

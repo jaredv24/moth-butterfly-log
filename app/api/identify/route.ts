@@ -2,13 +2,17 @@ import { NextResponse } from "next/server";
 import { getChecklist } from "@/lib/data";
 import { getIdProvider } from "@/lib/id-provider";
 import { matchCandidate } from "@/lib/checklist-match";
-import { storePhoto } from "@/lib/storage";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
 const MAX_BYTES = 12 * 1024 * 1024;
 
+/**
+ * Identify a photo. The photo is NOT stored here — it is only sent to the
+ * identification provider. It is persisted later by /api/log, once the user
+ * confirms a species, so abandoned identifications leave nothing behind.
+ */
 export async function POST(req: Request) {
   const form = await req.formData().catch(() => null);
   const photo = form?.get("photo");
@@ -22,14 +26,8 @@ export async function POST(req: Request) {
   const lat = numeric(form?.get("lat"));
   const lng = numeric(form?.get("lng"));
   const bytes = Buffer.from(await photo.arrayBuffer());
-  const contentType = photo.type || "image/jpeg";
+  const checklist = await getChecklist();
 
-  const [photoUrl, checklist] = await Promise.all([
-    storePhoto(bytes, contentType),
-    getChecklist(),
-  ]);
-
-  let candidates;
   try {
     const provider = getIdProvider();
     const raw = await provider.identify(bytes, {
@@ -37,7 +35,7 @@ export async function POST(req: Request) {
       lng,
       observedOn: new Date().toISOString().slice(0, 10),
     });
-    candidates = raw.map((c) => {
+    const candidates = raw.map((c) => {
       const m = matchCandidate(c, checklist);
       return {
         name: c.name,
@@ -55,15 +53,14 @@ export async function POST(req: Request) {
         },
       };
     });
+    return NextResponse.json({ candidates });
   } catch (err) {
     console.error("identify failed:", err);
     return NextResponse.json(
-      { error: "Identification service is unavailable right now.", photoUrl },
+      { error: "Identification service is unavailable right now." },
       { status: 502 },
     );
   }
-
-  return NextResponse.json({ photoUrl, candidates });
 }
 
 function numeric(v: FormDataEntryValue | null | undefined): number | undefined {

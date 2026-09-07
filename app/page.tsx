@@ -1,25 +1,37 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ProgressBar } from "@/components/ProgressRing";
 import { SeenBadge } from "@/components/SeenBadge";
 import { SpeciesName } from "@/components/SpeciesName";
+import { SpeciesPicker } from "@/components/SpeciesPicker";
 import { Thumb } from "@/components/Thumb";
+import { shrinkImage } from "@/lib/resize";
 import { useUserCode } from "@/lib/useUserCode";
-import type { Candidate, IdentifyResponse, LogResponse } from "@/lib/types";
+import type { Candidate, ChecklistItem, IdentifyResponse, LogResponse } from "@/lib/types";
 
 type Phase = "idle" | "identifying" | "results" | "logging" | "done";
 type Coords = { lat: number; lng: number } | null;
+
+type LogArgs = {
+  name: string;
+  scientificName: string;
+  speciesId: number | null;
+  matchLevel: "species" | "genus" | "off-list";
+  confidence: number | null;
+  inatTaxonId: number | null;
+};
 
 export default function IdentifyPage() {
   const { code, loading } = useUserCode();
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [result, setResult] = useState<IdentifyResponse | null>(null);
-  const [coords, setCoords] = useState<Coords>(null);
+  const [candidates, setCandidates] = useState<Candidate[] | null>(null);
+  const [picking, setPicking] = useState(false);
   const coordsRef = useRef<Coords>(null);
+  const photoRef = useRef<Blob | null>(null);
   const [geoState, setGeoState] = useState<"idle" | "asking" | "ok" | "denied">("idle");
   const [logSummary, setLogSummary] = useState<LogResponse | null>(null);
   const [done, setDone] = useState<{
@@ -31,19 +43,19 @@ export default function IdentifyPage() {
   } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
-  const loadSummary = useCallback(async () => {
+  const loadSummary = () => {
     if (!code) return;
-    const res = await fetch(`/api/log?code=${code}`);
-    if (res.ok) setLogSummary(await res.json());
-  }, [code]);
+    fetch(`/api/log?code=${code}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setLogSummary(d));
+  };
 
   useEffect(() => {
     if (!code) return;
     let cancelled = false;
-    (async () => {
-      const res = await fetch(`/api/log?code=${code}`);
-      if (!cancelled && res.ok) setLogSummary(await res.json());
-    })();
+    fetch(`/api/log?code=${code}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => !cancelled && d && setLogSummary(d));
     return () => {
       cancelled = true;
     };
@@ -53,8 +65,10 @@ export default function IdentifyPage() {
     setPhase("idle");
     setError(null);
     setPhotoPreview(null);
-    setResult(null);
+    setCandidates(null);
+    setPicking(false);
     setDone(null);
+    photoRef.current = null;
     if (fileInput.current) fileInput.current.value = "";
   }
 
@@ -63,9 +77,7 @@ export default function IdentifyPage() {
     setGeoState("asking");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        coordsRef.current = c;
-        setCoords(c);
+        coordsRef.current = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setGeoState("ok");
       },
       () => setGeoState("denied"),
@@ -77,15 +89,17 @@ export default function IdentifyPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     setError(null);
-    setPhotoPreview(URL.createObjectURL(file));
     captureLocation();
     setPhase("identifying");
 
     try {
-      // give a cached GPS fix a moment to arrive so the model gets a geo prior
-      await new Promise((r) => setTimeout(r, 400));
+      const blob = await shrinkImage(file);
+      photoRef.current = blob;
+      setPhotoPreview(URL.createObjectURL(blob));
+
+      await new Promise((r) => setTimeout(r, 400)); // let a cached GPS fix land
       const form = new FormData();
-      form.append("photo", file);
+      form.append("photo", blob, "photo.jpg");
       const c = coordsRef.current;
       if (c) {
         form.append("lat", String(c.lat));
@@ -94,7 +108,7 @@ export default function IdentifyPage() {
       const res = await fetch("/api/identify", { method: "POST", body: form });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Identification failed");
-      setResult(data as IdentifyResponse);
+      setCandidates((data as IdentifyResponse).candidates);
       setPhase("results");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -102,35 +116,35 @@ export default function IdentifyPage() {
     }
   }
 
-  async function confirm(candidate: Candidate) {
-    if (!code || !result) return;
+  async function logSighting(args: LogArgs) {
+    if (!code || !photoRef.current) return;
     setPhase("logging");
     setError(null);
     try {
-      const res = await fetch("/api/log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code,
-          photoUrl: result.photoUrl,
-          name: candidate.match.commonName,
-          scientificName: candidate.match.scientificName,
-          inatTaxonId: candidate.inatTaxonId,
-          confidence: candidate.confidence,
-          speciesId: candidate.match.speciesId,
-          matchLevel: candidate.match.matchLevel,
-          lat: (coordsRef.current ?? coords)?.lat ?? null,
-          lng: (coordsRef.current ?? coords)?.lng ?? null,
-        }),
-      });
+      const form = new FormData();
+      form.append("photo", photoRef.current, "photo.jpg");
+      form.append("code", code);
+      form.append("name", args.name);
+      form.append("scientificName", args.scientificName);
+      form.append("matchLevel", args.matchLevel);
+      if (args.speciesId != null) form.append("speciesId", String(args.speciesId));
+      if (args.confidence != null) form.append("confidence", String(args.confidence));
+      if (args.inatTaxonId != null) form.append("inatTaxonId", String(args.inatTaxonId));
+      const c = coordsRef.current;
+      if (c) {
+        form.append("lat", String(c.lat));
+        form.append("lng", String(c.lng));
+      }
+
+      const res = await fetch("/api/log", { method: "POST", body: form });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not save to your log");
       setDone({
-        name: candidate.match.commonName,
-        scientific: candidate.match.scientificName,
+        name: args.name,
+        scientific: args.scientificName,
         placeLabel: data.placeLabel ?? null,
         isNewSpecies: !!data.isNewSpecies,
-        checklisted: candidate.match.speciesId != null,
+        checklisted: args.speciesId != null,
       });
       setPhase("done");
       loadSummary();
@@ -139,6 +153,28 @@ export default function IdentifyPage() {
       setPhase("results");
     }
   }
+
+  const confirmCandidate = (c: Candidate) =>
+    logSighting({
+      name: c.match.commonName,
+      scientificName: c.match.scientificName,
+      speciesId: c.match.speciesId,
+      matchLevel: c.match.matchLevel,
+      confidence: c.confidence,
+      inatTaxonId: c.inatTaxonId,
+    });
+
+  const confirmManual = (it: ChecklistItem) => {
+    setPicking(false);
+    logSighting({
+      name: it.commonName,
+      scientificName: it.scientificName,
+      speciesId: it.id,
+      matchLevel: "species",
+      confidence: null,
+      inatTaxonId: it.inatTaxonId,
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -179,10 +215,7 @@ export default function IdentifyPage() {
                 seen={logSummary.stats.mothsSeen}
                 total={logSummary.stats.totalMoths}
               />
-              <Link
-                href="/checklist"
-                className="block pt-1 text-sm font-medium text-accent"
-              >
+              <Link href="/checklist" className="block pt-1 text-sm font-medium text-accent">
                 Browse the full checklist →
               </Link>
             </section>
@@ -196,15 +229,13 @@ export default function IdentifyPage() {
         photoPreview && (
           <div className="overflow-hidden rounded-2xl border border-border bg-surface">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={photoPreview}
-              alt="Your photo"
-              className="max-h-72 w-full object-cover"
-            />
+            <img src={photoPreview} alt="Your photo" className="max-h-72 w-full object-cover" />
             <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted">
               {geoState === "ok" && <span>📍 Location captured</span>}
               {geoState === "asking" && <span>📍 Getting location…</span>}
-              {geoState === "denied" && <span>📍 Location off — badge will show the date only</span>}
+              {geoState === "denied" && (
+                <span>📍 Location off — badge will show the date only</span>
+              )}
             </div>
           </div>
         )}
@@ -213,27 +244,24 @@ export default function IdentifyPage() {
         <p className="text-center text-sm text-muted">Identifying…</p>
       )}
 
-      {phase === "results" && result && (
+      {phase === "results" && candidates && (
         <section className="space-y-3">
           <h2 className="text-sm font-semibold">
-            Best matches — tap the right one
+            {candidates.length ? "Best matches — tap the right one" : "No match found"}
           </h2>
-          {result.candidates.map((c, i) => (
+          {candidates.map((c, i) => (
             <button
               key={i}
-              onClick={() => confirm(c)}
+              onClick={() => confirmCandidate(c)}
               className="flex w-full items-center gap-3 rounded-xl border border-border bg-surface p-3 text-left transition active:scale-[0.99]"
             >
               <Thumb
                 src={c.match.thumbUrl}
                 group={c.match.group}
-                className="h-14 w-14 shrink-0 rounded-lg object-cover"
+                className="h-14 w-14 shrink-0 rounded-lg bg-border object-cover"
               />
               <div className="min-w-0 flex-1">
-                <SpeciesName
-                  common={c.match.commonName}
-                  scientific={c.match.scientificName}
-                />
+                <SpeciesName common={c.match.commonName} scientific={c.match.scientificName} />
                 <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted">
                   <span>{Math.round(c.confidence * 100)}% match</span>
                   {c.match.speciesId == null && (
@@ -249,6 +277,13 @@ export default function IdentifyPage() {
               <span className="text-accent">›</span>
             </button>
           ))}
+
+          <button
+            onClick={() => setPicking(true)}
+            className="w-full rounded-xl border border-dashed border-border py-2.5 text-sm font-medium"
+          >
+            None of these — pick the species myself
+          </button>
           <button onClick={reset} className="w-full py-2 text-sm text-muted">
             Cancel
           </button>
@@ -264,7 +299,9 @@ export default function IdentifyPage() {
           <div className="text-4xl">{done.isNewSpecies ? "🎉" : "✓"}</div>
           <div>
             <h2 className="text-lg font-bold">{done.name}</h2>
-            <p className="text-sm italic text-muted">{done.scientific}</p>
+            {done.name.toLowerCase() !== done.scientific.toLowerCase() && (
+              <p className="text-sm italic text-muted">{done.scientific}</p>
+            )}
           </div>
           <p className="text-sm">
             {done.isNewSpecies
@@ -304,6 +341,14 @@ export default function IdentifyPage() {
         className="hidden"
         onChange={onPick}
       />
+
+      {picking && (
+        <SpeciesPicker
+          title="What is it?"
+          onSelect={confirmManual}
+          onClose={() => setPicking(false)}
+        />
+      )}
     </div>
   );
 }
@@ -320,11 +365,9 @@ function RecentStrip({ log }: { log: LogResponse["log"] }) {
             <Thumb
               src={s.photoUrl}
               alt={s.identifiedName}
-              className="h-24 w-24 rounded-lg object-cover"
+              className="h-24 w-24 rounded-lg bg-border object-cover"
             />
-            <div className="mt-1 truncate text-[11px] font-medium">
-              {s.identifiedName}
-            </div>
+            <div className="mt-1 truncate text-[11px] font-medium">{s.identifiedName}</div>
           </div>
         ))}
       </div>
