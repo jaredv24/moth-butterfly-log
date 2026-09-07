@@ -12,6 +12,13 @@ export const metadata: Metadata = {
     "Snap a moth or butterfly, identify it, and check it off your North American life list.",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "Lep Log", statusBarStyle: "default" },
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {

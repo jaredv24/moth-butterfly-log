@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getChecklist } from "@/lib/data";
 import { getIdProvider } from "@/lib/id-provider";
 import { matchCandidate } from "@/lib/checklist-match";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -14,6 +15,14 @@ const MAX_BYTES = 12 * 1024 * 1024;
  * confirms a species, so abandoned identifications leave nothing behind.
  */
 export async function POST(req: Request) {
+  const limit = await rateLimit("identify", clientIp(req), 40, 3600);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "Too many identifications in the last hour. Try again later." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSec) } },
+    );
+  }
+
   const form = await req.formData().catch(() => null);
   const photo = form?.get("photo");
   if (!(photo instanceof File)) {

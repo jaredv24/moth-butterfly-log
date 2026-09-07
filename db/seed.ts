@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { sql } from "drizzle-orm";
+import { notInArray, sql } from "drizzle-orm";
 import checklist from "../data/checklist.json";
 import { db } from "./index";
 import { checklistSpecies } from "./schema";
@@ -37,6 +37,24 @@ async function main() {
       });
     console.log(`  ${Math.min(i + batchSize, rows.length)}/${rows.length}`);
   }
+
+  // Drop species no longer in the checklist (skips any still referenced by a
+  // sighting — the FK will block those, which is the safe outcome).
+  const keepIds = rows.map((r) => r.inatTaxonId);
+  const [{ before }] = await db
+    .select({ before: sql<number>`count(*)::int` })
+    .from(checklistSpecies);
+  try {
+    await db
+      .delete(checklistSpecies)
+      .where(notInArray(checklistSpecies.inatTaxonId, keepIds));
+  } catch (err) {
+    console.warn("Prune skipped (some stale species are still referenced):", err);
+  }
+  const [{ after }] = await db
+    .select({ after: sql<number>`count(*)::int` })
+    .from(checklistSpecies);
+  if (before !== after) console.log(`Pruned ${before - after} stale species.`);
 
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)::int` })

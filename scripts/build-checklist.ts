@@ -3,9 +3,12 @@
  * butterflies the app checks sightings off against.
  *
  * Source: the public iNaturalist API (no auth). We pull the most-observed
- * Lepidoptera species recorded in North America (place_id 97394), keep every
- * butterfly (superfamily Papilionoidea, taxon 47224) plus the most commonly
- * observed moths, then enrich each with its family name.
+ * Lepidoptera species recorded in the US + Canada, keep butterflies (superfamily
+ * Papilionoidea, taxon 47224) that clear a modest observation threshold plus the
+ * most commonly observed moths, then enrich each with its family name.
+ *
+ * Scope is US + Canada (not the "North America" continent, which folds in
+ * Mexico and ~1,000 rare tropical strays).
  *
  * Run: npm run build:checklist
  */
@@ -13,14 +16,14 @@ import { writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const INAT = "https://api.inaturalist.org/v1";
-const NORTH_AMERICA_PLACE_ID = 97394;
+const PLACE_IDS = "1,6571"; // 1 = United States, 6571 = Canada
 const LEPIDOPTERA = 47157;
 const PAPILIONOIDEA = 47224; // butterflies (incl. skippers under modern taxonomy)
 
 const PAGES = 16; // 16 * 500 = 8000 most-observed species scanned
 const PER_PAGE = 500;
 const MAX_MOTHS = 900;
-const MIN_BUTTERFLY_COUNT = 2;
+const MIN_BUTTERFLY_COUNT = 3;
 
 type SpeciesCount = {
   count: number;
@@ -63,7 +66,7 @@ async function fetchSpeciesCounts(): Promise<SpeciesCount[]> {
   const all: SpeciesCount[] = [];
   for (let page = 1; page <= PAGES; page++) {
     const url =
-      `${INAT}/observations/species_counts?place_id=${NORTH_AMERICA_PLACE_ID}` +
+      `${INAT}/observations/species_counts?place_id=${PLACE_IDS}` +
       `&taxon_id=${LEPIDOPTERA}&quality_grade=research&hrank=species` +
       `&per_page=${PER_PAGE}&page=${page}`;
     const json = await getJSON(url);

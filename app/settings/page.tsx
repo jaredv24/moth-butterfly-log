@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import QRCode from "qrcode";
+import { useEffect, useState } from "react";
 import { useUserCode } from "@/lib/useUserCode";
 
 export default function SettingsPage() {
@@ -9,6 +10,15 @@ export default function SettingsPage() {
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [qr, setQr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!code) return;
+    const url = `${window.location.origin}/?code=${code}`;
+    QRCode.toDataURL(url, { width: 260, margin: 1 })
+      .then(setQr)
+      .catch(() => setQr(null));
+  }, [code]);
 
   async function copy() {
     if (!code) return;
@@ -43,15 +53,27 @@ export default function SettingsPage() {
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Your code</h1>
         <p className="text-sm text-muted">
-          This code is the key to your log. Save it to open the same log on
-          another phone or browser.
+          This code is the only key to your log. There is no password and no way
+          to recover it — save it somewhere safe.
         </p>
       </header>
 
-      <section className="rounded-2xl border border-border bg-surface p-5 text-center">
+      <section className="space-y-3 rounded-2xl border border-border bg-surface p-5 text-center">
         <p className="text-xs uppercase tracking-wide text-muted">Your log code</p>
-        <p className="my-2 font-mono text-2xl font-bold tracking-wider">
+        <p className="font-mono text-2xl font-bold tracking-wider">
           {loading ? "…" : (code ?? "unavailable")}
+        </p>
+        {qr && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={qr}
+            alt="QR code for your log"
+            className="mx-auto h-44 w-44 rounded-lg bg-white p-2"
+          />
+        )}
+        <p className="text-xs text-muted">
+          Screenshot this QR, or copy the code. Scanning it on another phone opens
+          your log there.
         </p>
         <button
           onClick={copy}

@@ -6,6 +6,7 @@ import { sightings } from "@/db/schema";
 import { isValidUserCode, normalizeUserCode } from "@/lib/code";
 import { findUser, getChecklist, getSpeciesById, getUserLog } from "@/lib/data";
 import { reverseGeocode } from "@/lib/geocode";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { deletePhoto, storePhoto } from "@/lib/storage";
 
 export const runtime = "nodejs";
@@ -46,6 +47,11 @@ export async function GET(req: Request) {
 
 /** Create a sighting. Multipart: `photo` file + fields. Stores the photo now. */
 export async function POST(req: Request) {
+  const limit = await rateLimit("log", clientIp(req), 60, 3600);
+  if (!limit.ok) {
+    return NextResponse.json({ error: "Too many sightings logged recently." }, { status: 429 });
+  }
+
   const form = await req.formData().catch(() => null);
   if (!form) return NextResponse.json({ error: "expected multipart form" }, { status: 400 });
 

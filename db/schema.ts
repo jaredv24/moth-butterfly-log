@@ -71,6 +71,17 @@ export const sightings = pgTable(
   ],
 );
 
+/** Sliding-window rate limiting: one row per request, pruned as it goes. */
+export const rateHits = pgTable(
+  "rate_hits",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    bucket: text("bucket").notNull(), // e.g. "identify:203.0.113.4"
+    at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("rate_hits_bucket_at_idx").on(t.bucket, t.at)],
+);
+
 export type User = typeof users.$inferSelect;
 export type ChecklistSpecies = typeof checklistSpecies.$inferSelect;
 export type Sighting = typeof sightings.$inferSelect;
