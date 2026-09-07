@@ -5,7 +5,13 @@ import { SeenBadge } from "@/components/SeenBadge";
 import { SpeciesName } from "@/components/SpeciesName";
 import { Thumb } from "@/components/Thumb";
 import { useUserCode } from "@/lib/useUserCode";
-import type { ChecklistItem, Group, LogItem, LogResponse } from "@/lib/types";
+import type {
+  ChecklistItem,
+  Group,
+  LogItem,
+  LogResponse,
+  NearbyResponse,
+} from "@/lib/types";
 
 type SeenMap = Map<number, LogItem>; // speciesId -> earliest sighting
 
@@ -18,12 +24,41 @@ export default function ChecklistPage() {
   const [onlySeen, setOnlySeen] = useState(false);
   const [detail, setDetail] = useState<ChecklistItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [nearby, setNearby] = useState<NearbyResponse | null>(null);
+  const [nearbyState, setNearbyState] = useState<"loading" | "ready" | "unavailable">(
+    () =>
+      typeof navigator !== "undefined" && "geolocation" in navigator
+        ? "loading"
+        : "unavailable",
+  );
+  const [showAllNearby, setShowAllNearby] = useState(false);
 
   useEffect(() => {
     fetch("/api/checklist")
       .then((r) => r.json())
       .then((d) => setItems(d.species ?? []))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (nearbyState !== "loading") return;
+    // once on mount: nearbyState only transitions away from "loading" here
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        fetch(
+          `/api/nearby?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}`,
+        )
+          .then((r) => (r.ok ? r.json() : Promise.reject()))
+          .then((d: NearbyResponse) => {
+            setNearby(d);
+            setNearbyState("ready");
+          })
+          .catch(() => setNearbyState("unavailable"));
+      },
+      () => setNearbyState("unavailable"),
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 3600_000 },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -83,6 +118,60 @@ export default function ChecklistPage() {
           {query || onlySeen ? " (filtered)" : ""}
         </p>
       </header>
+
+      {nearbyState === "loading" && (
+        <p className="text-xs text-muted">Checking what&apos;s flying near you…</p>
+      )}
+      {nearby && nearby.species.length > 0 && (
+        <section className="space-y-2 rounded-2xl border border-accent/40 bg-accent/8 p-4">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-sm font-semibold">
+              Flying near you · {nearby.monthName}
+            </h2>
+            <span className="text-[11px] text-muted">
+              within {nearby.radiusKm} km
+            </span>
+          </div>
+          <ul className="divide-y divide-border/60 overflow-hidden rounded-xl border border-border bg-surface">
+            {(showAllNearby ? nearby.species : nearby.species.slice(0, 8)).map(
+              (it) => {
+                const seen = seenMap.has(it.id);
+                return (
+                  <li key={it.id} className={seen ? "bg-accent/8" : ""}>
+                    <button
+                      onClick={() => setDetail(it)}
+                      className="flex w-full items-center gap-2.5 p-2 text-left"
+                    >
+                      <Thumb
+                        src={it.thumbUrl}
+                        group={it.group}
+                        className="h-9 w-9 shrink-0 rounded-md bg-border object-cover"
+                      />
+                      <span className="min-w-0 flex-1 truncate text-sm">
+                        {it.commonName}
+                        <span aria-hidden className="ml-1 text-xs">
+                          {it.group === "moth" ? "🌙" : "🦋"}
+                        </span>
+                      </span>
+                      {seen && <span className="text-accent">✓</span>}
+                    </button>
+                  </li>
+                );
+              },
+            )}
+          </ul>
+          {nearby.species.length > 8 && (
+            <button
+              onClick={() => setShowAllNearby((v) => !v)}
+              className="text-xs font-medium text-accent"
+            >
+              {showAllNearby
+                ? "Show fewer"
+                : `Show all ${nearby.species.length}`}
+            </button>
+          )}
+        </section>
+      )}
 
       <div className="flex gap-2">
         {(["butterfly", "moth"] as Group[]).map((g) => (

@@ -5,6 +5,7 @@ const ENDPOINT = "https://insect.kindwise.com/api/v1/identification";
 type KindwiseSuggestion = {
   name: string; // scientific name
   probability: number; // 0..1
+  similar_images?: { url?: string; url_small?: string }[] | null;
   details?: {
     common_names?: string[] | null;
     gbif_id?: number | null;
@@ -34,6 +35,7 @@ export class KindwiseProvider implements IdProvider {
 
     const body: Record<string, unknown> = {
       images: [image.toString("base64")],
+      similar_images: true, // gives us a representative photo per candidate
     };
     if (opts.lat != null && opts.lng != null) {
       body.latitude = opts.lat;
@@ -66,6 +68,8 @@ export class KindwiseProvider implements IdProvider {
         name: common ?? s.name,
         scientificName: s.name,
         confidence: s.probability,
+        order: s.details?.taxonomy?.order ?? null,
+        imageUrl: s.similar_images?.[0]?.url_small ?? s.similar_images?.[0]?.url ?? null,
       };
     });
   }

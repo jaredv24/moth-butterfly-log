@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getChecklist } from "@/lib/data";
 import { getIdProvider } from "@/lib/id-provider";
+import { bugGroupFor } from "@/lib/bug-groups";
 import { matchCandidate } from "@/lib/checklist-match";
 import { assessPlausibility } from "@/lib/plausibility";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
@@ -50,11 +51,14 @@ export async function POST(req: Request) {
 
     let candidates = raw.map((c) => {
       const m = matchCandidate(c, checklist);
+      const offList = m.species == null;
       return {
         name: c.name,
         scientificName: c.scientificName,
         inatTaxonId: m.species?.inatTaxonId ?? c.inatTaxonId ?? null,
         confidence: c.confidence,
+        // for off-checklist bugs: the provider's photo + a friendly group label
+        otherGroup: offList ? bugGroupFor(c.order) : null,
         match: {
           speciesId: m.species?.id ?? null,
           matchLevel: m.matchLevel,
@@ -62,7 +66,7 @@ export async function POST(req: Request) {
           scientificName: m.species?.scientificName ?? c.scientificName,
           group: m.species?.taxonGroup ?? null,
           family: m.species?.family ?? null,
-          thumbUrl: m.species?.thumbUrl ?? null,
+          thumbUrl: m.species?.thumbUrl ?? (offList ? c.imageUrl ?? null : null),
         },
         plausibility: null as { verdict: string; note: string } | null,
       };

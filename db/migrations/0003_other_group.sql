@@ -1,0 +1,1 @@
+ALTER TABLE "sightings" ADD COLUMN "other_group" text;

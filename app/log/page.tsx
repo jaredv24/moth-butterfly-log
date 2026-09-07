@@ -38,7 +38,19 @@ export default function LogPage() {
     [data],
   );
   const onList = entries.filter((e) => e.speciesId != null);
-  const offList = entries.filter((e) => e.speciesId == null);
+
+  // off-checklist sightings grouped by bug type, biggest group first
+  const offGroups = useMemo(() => {
+    const map = new Map<string, LogItem[]>();
+    for (const e of entries) {
+      if (e.speciesId != null) continue;
+      const g = e.otherGroup ?? "Other bugs";
+      const arr = map.get(g) ?? [];
+      arr.push(e);
+      map.set(g, arr);
+    }
+    return [...map.entries()].sort((a, b) => b[1].length - a[1].length);
+  }, [entries]);
 
   async function del(entry: LogItem) {
     if (!code) return;
@@ -94,8 +106,10 @@ export default function LogPage() {
         <h1 className="text-2xl font-bold tracking-tight">Your log</h1>
         {data && (
           <p className="text-sm text-muted">
-            {data.stats.butterfliesSeen + data.stats.mothsSeen} species ·{" "}
-            {entries.length} sightings
+            {data.stats.butterfliesSeen +
+              data.stats.mothsSeen +
+              data.stats.otherSpecies}{" "}
+            species · {entries.length} sightings
           </p>
         )}
       </header>
@@ -129,13 +143,14 @@ export default function LogPage() {
         </ul>
       )}
 
-      {offList.length > 0 && (
-        <section className="space-y-3">
+      {offGroups.map(([group, rows]) => (
+        <section key={group} className="space-y-3">
           <h2 className="text-sm font-semibold">
-            Other sightings (not on the NA checklist)
+            {group}{" "}
+            <span className="font-normal text-muted">· {rows.length}</span>
           </h2>
           <ul className="space-y-3">
-            {offList.map((e) => (
+            {rows.map((e) => (
               <LogCard
                 key={e.id}
                 entry={e}
@@ -149,7 +164,7 @@ export default function LogPage() {
             ))}
           </ul>
         </section>
-      )}
+      ))}
 
       {pickFor && (
         <SpeciesPicker

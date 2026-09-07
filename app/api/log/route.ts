@@ -43,7 +43,22 @@ export async function GET(req: Request) {
     else seenGroups.mothsSeen++;
   }
 
-  return NextResponse.json({ log, stats: { ...totals, ...seenGroups } });
+  // "other bugs" side list: distinct off-checklist species, grouped by type
+  const otherByGroup: Record<string, Set<string>> = {};
+  for (const e of log) {
+    if (e.speciesId != null) continue;
+    const g = e.otherGroup ?? "Other bugs";
+    (otherByGroup[g] ??= new Set()).add(e.identifiedScientific.toLowerCase());
+  }
+  const otherGroups = Object.entries(otherByGroup)
+    .map(([group, set]) => ({ group, species: set.size }))
+    .sort((a, b) => b.species - a.species);
+  const otherSpecies = otherGroups.reduce((n, g) => n + g.species, 0);
+
+  return NextResponse.json({
+    log,
+    stats: { ...totals, ...seenGroups, otherSpecies, otherGroups },
+  });
 }
 
 /** Create a sighting. Multipart: `photo` file + fields. Stores the photo now. */
@@ -73,6 +88,7 @@ export async function POST(req: Request) {
       confidence: z.coerce.number().optional(),
       speciesId: z.coerce.number().int().optional(),
       matchLevel: z.enum(matchLevels).default("species"),
+      otherGroup: z.string().max(60).optional(),
       lat: z.coerce.number().optional(),
       lng: z.coerce.number().optional(),
       observedAt: z.string().datetime().optional(),
@@ -125,6 +141,7 @@ export async function POST(req: Request) {
       lng: body.lng ?? null,
       placeLabel,
       observedAt,
+      otherGroup: speciesId == null ? (body.otherGroup ?? null) : null,
     })
     .returning();
 

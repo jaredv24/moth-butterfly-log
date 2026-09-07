@@ -73,6 +73,8 @@ export const sightings = pgTable(
     // set once this sighting has been posted to iNaturalist
     inatObservationId: integer("inat_observation_id"),
     inatSyncError: text("inat_sync_error"),
+    // friendly group for off-checklist bugs, e.g. "Beetles" (null for moths/butterflies)
+    otherGroup: text("other_group"),
   },
   (t) => [
     index("sightings_user_idx").on(t.userId),

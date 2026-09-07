@@ -61,6 +61,7 @@ export type LogEntry = {
   lng: number | null;
   observedAt: string;
   inatObservationId: number | null;
+  otherGroup: string | null;
 };
 
 export async function getUserLog(userId: string): Promise<LogEntry[]> {
@@ -82,6 +83,7 @@ export async function getUserLog(userId: string): Promise<LogEntry[]> {
     lng: r.lng,
     observedAt: r.observedAt.toISOString(),
     inatObservationId: r.inatObservationId,
+    otherGroup: r.otherGroup,
   }));
 }
 

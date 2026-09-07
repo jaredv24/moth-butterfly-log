@@ -22,6 +22,7 @@ type LogArgs = {
   matchLevel: "species" | "genus" | "off-list";
   confidence: number | null;
   inatTaxonId: number | null;
+  otherGroup?: string | null;
 };
 
 export default function IdentifyPage() {
@@ -45,6 +46,7 @@ export default function IdentifyPage() {
     placeLabel: string | null;
     isNewSpecies: boolean;
     checklisted: boolean;
+    otherGroup: string | null;
     observedAt: string;
   } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -175,6 +177,7 @@ export default function IdentifyPage() {
       if (args.speciesId != null) form.append("speciesId", String(args.speciesId));
       if (args.confidence != null) form.append("confidence", String(args.confidence));
       if (args.inatTaxonId != null) form.append("inatTaxonId", String(args.inatTaxonId));
+      if (args.otherGroup) form.append("otherGroup", args.otherGroup);
       const c = coordsRef.current;
       if (c) {
         form.append("lat", String(c.lat));
@@ -191,6 +194,7 @@ export default function IdentifyPage() {
         placeLabel: data.placeLabel ?? null,
         isNewSpecies: !!data.isNewSpecies,
         checklisted: args.speciesId != null,
+        otherGroup: args.otherGroup ?? null,
         observedAt: data.sighting?.observedAt ?? new Date().toISOString(),
       });
       setPhase("done");
@@ -209,6 +213,7 @@ export default function IdentifyPage() {
       matchLevel: c.match.matchLevel,
       confidence: c.confidence,
       inatTaxonId: c.inatTaxonId,
+      otherGroup: c.otherGroup,
     });
 
   const confirmManual = (it: ChecklistItem) => {
@@ -268,6 +273,27 @@ export default function IdentifyPage() {
             </section>
           )}
 
+          {logSummary && logSummary.stats.otherSpecies > 0 && (
+            <section className="space-y-2 rounded-2xl border border-border bg-surface p-4">
+              <div className="flex items-baseline justify-between">
+                <h2 className="text-sm font-semibold">Other bugs</h2>
+                <span className="text-xs text-muted">
+                  {logSummary.stats.otherSpecies} species
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {logSummary.stats.otherGroups.map((g) => (
+                  <span
+                    key={g.group}
+                    className="rounded-full bg-border px-2 py-0.5 text-[11px] font-medium"
+                  >
+                    {g.group} · {g.species}
+                  </span>
+                ))}
+              </div>
+            </section>
+          )}
+
           <RecentStrip log={logSummary?.log ?? []} />
         </>
       )}
@@ -311,7 +337,12 @@ export default function IdentifyPage() {
                 <SpeciesName common={c.match.commonName} scientific={c.match.scientificName} />
                 <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted">
                   <span>{Math.round(c.confidence * 100)}% match</span>
-                  {c.match.speciesId == null && (
+                  {c.match.speciesId == null && c.otherGroup && (
+                    <span className="rounded bg-border px-1.5 py-0.5">
+                      {c.otherGroup} · goes in your bug list
+                    </span>
+                  )}
+                  {c.match.speciesId == null && !c.otherGroup && (
                     <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-amber-700 dark:text-amber-400">
                       not on NA checklist
                     </span>
@@ -356,7 +387,9 @@ export default function IdentifyPage() {
               ? "New species added to your life list!"
               : done.checklisted
                 ? "Already on your life list — sighting logged."
-                : "Logged under “other sightings.”"}
+                : done.otherGroup
+                  ? `Added to your bug list under ${done.otherGroup}.`
+                  : "Logged under “other sightings.”"}
           </p>
           <div className="flex justify-center">
             <SeenBadge placeLabel={done.placeLabel} observedAt={done.observedAt} />

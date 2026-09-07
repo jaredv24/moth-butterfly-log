@@ -23,6 +23,7 @@ export type Candidate = {
   scientificName: string;
   inatTaxonId: number | null;
   confidence: number;
+  otherGroup: string | null;
   match: {
     speciesId: number | null;
     matchLevel: MatchLevel;
@@ -52,6 +53,14 @@ export type LogItem = {
   lng: number | null;
   observedAt: string;
   inatObservationId: number | null;
+  otherGroup: string | null;
+};
+
+export type NearbyResponse = {
+  month: number;
+  monthName: string;
+  radiusKm: number;
+  species: (ChecklistItem & { nearbyCount: number })[];
 };
 
 export type InatStatus = {
@@ -69,5 +78,7 @@ export type LogResponse = {
     totalMoths: number;
     butterfliesSeen: number;
     mothsSeen: number;
+    otherSpecies: number;
+    otherGroups: { group: string; species: number }[];
   };
 };
