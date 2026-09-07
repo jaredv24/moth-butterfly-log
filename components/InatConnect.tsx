@@ -66,17 +66,8 @@ export function InatConnect({ code }: { code: string | null }) {
     }
   }
 
-  if (!status) return null;
-  if (!status.configured) {
-    return (
-      <section className="rounded-2xl border border-border bg-surface p-5">
-        <h2 className="text-sm font-semibold">iNaturalist</h2>
-        <p className="mt-1 text-xs text-muted">
-          Not set up on this deployment yet.
-        </p>
-      </section>
-    );
-  }
+  // Hidden entirely until iNaturalist OAuth is configured for the deployment.
+  if (!status || !status.configured) return null;
 
   return (
     <section className="space-y-3 rounded-2xl border border-border bg-surface p-5">
