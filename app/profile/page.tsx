@@ -97,7 +97,7 @@ export default function SettingsPage() {
           <input
             value={name}
             onChange={(e) => setNameDraft(e.target.value)}
-            placeholder="e.g. Jared"
+            placeholder=""
             maxLength={24}
             className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
           />
