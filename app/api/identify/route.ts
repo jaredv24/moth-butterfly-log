@@ -70,7 +70,7 @@ export async function POST(req: Request) {
 
     // Location-aware sanity check: how often is each candidate actually
     // recorded near here, this month? Annotates + re-ranks gently. Fails soft.
-    if (lat != null && lng != null && candidates.length > 1) {
+    if (lat != null && lng != null && candidates.length > 0) {
       try {
         const scores = await assessPlausibility(
           candidates.map((c, i) => ({
