@@ -43,7 +43,7 @@ export default function MapPage() {
   const withoutLocation = (log ?? []).filter((s) => s.lat == null).length;
 
   return (
-    <div className="-mx-4 -mt-5 flex flex-col" style={{ height: "calc(100dvh - 4.5rem)" }}>
+    <div className="-mx-4 -mb-8 -mt-5 flex flex-1 flex-col">
       <div className="px-4 pb-2 pt-5">
         <h1 className="text-2xl font-bold tracking-tight">Map</h1>
         <p className="text-sm text-muted">

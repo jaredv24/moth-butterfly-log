@@ -45,11 +45,6 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Keep the fixed bottom nav clear of content. */
-.pb-nav {
-  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
-}
-
 /* Theme Leaflet popups + controls to the app palette (override Leaflet's CSS). */
 .leaflet-container .leaflet-popup-content-wrapper,
 .leaflet-container .leaflet-popup-tip {

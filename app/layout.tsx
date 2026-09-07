@@ -33,11 +33,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <main className="mx-auto w-full max-w-lg flex-1 px-4 pt-5 pb-nav">
-          {children}
+      {/*
+        Fixed shell: the page never scrolls, only <main> does. This keeps the
+        bottom nav rock-steady on iOS (position:fixed bottom bars jump around
+        when Safari's toolbar collapses).
+      */}
+      <body className="flex h-[100dvh] flex-col overflow-hidden">
+        <main className="flex flex-1 flex-col overflow-y-auto overscroll-contain">
+          <div className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pt-5 pb-8">
+            {children}
+          </div>
         </main>
         <BottomNav />
       </body>

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { ProgressBar } from "@/components/ProgressRing";
 import { SeenBadge } from "@/components/SeenBadge";
 import { SpeciesName } from "@/components/SpeciesName";
+import { SightingSheet } from "@/components/SightingSheet";
 import { SpeciesPicker } from "@/components/SpeciesPicker";
 import { Thumb } from "@/components/Thumb";
 import { readPhotoMeta } from "@/lib/exif";
@@ -40,6 +41,7 @@ export default function IdentifyPage() {
   >("idle");
   const [timeFromPhoto, setTimeFromPhoto] = useState(false);
   const [logSummary, setLogSummary] = useState<LogResponse | null>(null);
+  const [sheetSpecies, setSheetSpecies] = useState<string | null>(null);
   const [done, setDone] = useState<{
     name: string;
     scientific: string;
@@ -294,7 +296,10 @@ export default function IdentifyPage() {
             </section>
           )}
 
-          <RecentStrip log={logSummary?.log ?? []} />
+          <RecentStrip
+            log={logSummary?.log ?? []}
+            onOpen={setSheetSpecies}
+          />
         </>
       )}
 
@@ -430,6 +435,17 @@ export default function IdentifyPage() {
           onClose={() => setPicking(false)}
         />
       )}
+
+      {sheetSpecies && logSummary && (
+        <SightingSheet
+          sightings={logSummary.log.filter(
+            (l) =>
+              l.identifiedScientific.toLowerCase() ===
+              sheetSpecies.toLowerCase(),
+          )}
+          onClose={() => setSheetSpecies(null)}
+        />
+      )}
     </div>
   );
 }
@@ -457,7 +473,13 @@ function PlausibilityTag({
   );
 }
 
-function RecentStrip({ log }: { log: LogResponse["log"] }) {
+function RecentStrip({
+  log,
+  onOpen,
+}: {
+  log: LogResponse["log"];
+  onOpen: (scientific: string) => void;
+}) {
   if (log.length === 0) return null;
   const recent = [...log].reverse().slice(0, 6);
   return (
@@ -465,14 +487,20 @@ function RecentStrip({ log }: { log: LogResponse["log"] }) {
       <h2 className="text-sm font-semibold">Recent sightings</h2>
       <div className="flex gap-2 overflow-x-auto pb-1">
         {recent.map((s) => (
-          <div key={s.id} className="w-24 shrink-0">
+          <button
+            key={s.id}
+            onClick={() => onOpen(s.identifiedScientific)}
+            className="w-24 shrink-0 text-left"
+          >
             <Thumb
               src={s.photoUrl}
               alt={s.identifiedName}
               className="h-24 w-24 rounded-lg bg-border object-cover"
             />
-            <div className="mt-1 truncate text-[11px] font-medium">{s.identifiedName}</div>
-          </div>
+            <div className="mt-1 truncate text-[11px] font-medium">
+              {s.identifiedName}
+            </div>
+          </button>
         ))}
       </div>
     </section>

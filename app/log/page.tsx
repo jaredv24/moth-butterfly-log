@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { SeenBadge } from "@/components/SeenBadge";
+import { SightingSheet } from "@/components/SightingSheet";
 import { SpeciesName } from "@/components/SpeciesName";
 import { SpeciesPicker } from "@/components/SpeciesPicker";
 import { Thumb } from "@/components/Thumb";
@@ -15,6 +16,7 @@ export default function LogPage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [pickFor, setPickFor] = useState<LogItem | null>(null);
+  const [sheetFor, setSheetFor] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   const refetch = useCallback(() => {
@@ -135,6 +137,7 @@ export default function LogPage() {
               entry={e}
               open={openId === e.id}
               busy={busyId === e.id}
+              onOpen={() => setSheetFor(e.identifiedScientific)}
               onToggle={() => setOpenId(openId === e.id ? null : e.id)}
               onChange={() => setPickFor(e)}
               onDelete={() => del(e)}
@@ -157,6 +160,7 @@ export default function LogPage() {
                 dashed
                 open={openId === e.id}
                 busy={busyId === e.id}
+                onOpen={() => setSheetFor(e.identifiedScientific)}
                 onToggle={() => setOpenId(openId === e.id ? null : e.id)}
                 onChange={() => setPickFor(e)}
                 onDelete={() => del(e)}
@@ -173,6 +177,16 @@ export default function LogPage() {
           onClose={() => setPickFor(null)}
         />
       )}
+
+      {sheetFor && (
+        <SightingSheet
+          sightings={entries.filter(
+            (e) =>
+              e.identifiedScientific.toLowerCase() === sheetFor.toLowerCase(),
+          )}
+          onClose={() => setSheetFor(null)}
+        />
+      )}
     </div>
   );
 }
@@ -182,6 +196,7 @@ function LogCard({
   dashed,
   open,
   busy,
+  onOpen,
   onToggle,
   onChange,
   onDelete,
@@ -190,6 +205,7 @@ function LogCard({
   dashed?: boolean;
   open: boolean;
   busy: boolean;
+  onOpen: () => void;
   onToggle: () => void;
   onChange: () => void;
   onDelete: () => void;
@@ -201,28 +217,40 @@ function LogCard({
       }`}
     >
       <div className="flex gap-3">
-        <Thumb
-          src={entry.photoUrl}
-          alt={entry.identifiedName}
-          className="h-20 w-20 shrink-0 rounded-lg bg-border object-cover"
-        />
-        <div className="min-w-0 flex-1">
-          <SpeciesName
-            common={entry.identifiedName}
-            scientific={entry.identifiedScientific}
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={onOpen}
+          onKeyDown={(e) => e.key === "Enter" && onOpen()}
+          className="flex min-w-0 flex-1 cursor-pointer gap-3"
+        >
+          <Thumb
+            src={entry.photoUrl}
+            alt={entry.identifiedName}
+            className="h-20 w-20 shrink-0 rounded-lg bg-border object-cover"
           />
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            <SeenBadge placeLabel={entry.placeLabel} observedAt={entry.observedAt} />
-            {entry.inatObservationId && (
-              <a
-                href={`https://www.inaturalist.org/observations/${entry.inatObservationId}`}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-full bg-border px-2 py-0.5 text-[11px] font-medium text-muted"
-              >
-                iNaturalist ↗
-              </a>
-            )}
+          <div className="min-w-0 flex-1">
+            <SpeciesName
+              common={entry.identifiedName}
+              scientific={entry.identifiedScientific}
+            />
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              <SeenBadge
+                placeLabel={entry.placeLabel}
+                observedAt={entry.observedAt}
+              />
+              {entry.inatObservationId && (
+                <a
+                  href={`https://www.inaturalist.org/observations/${entry.inatObservationId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="rounded-full bg-border px-2 py-0.5 text-[11px] font-medium text-muted"
+                >
+                  iNaturalist ↗
+                </a>
+              )}
+            </div>
           </div>
         </div>
         <button
