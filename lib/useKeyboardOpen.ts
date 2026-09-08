@@ -12,13 +12,17 @@ function isEditable(el: EventTarget | null): boolean {
 }
 
 /**
- * True while the on-screen keyboard is (very likely) open: a text field is
- * focused and the visual viewport has shrunk noticeably.
+ * True while the on-screen keyboard is (very likely) open.
  *
- * Side effect: while the keyboard is open, sets `--app-h` on <html> to the
- * visible viewport height so the fixed shell (and the chat composer pinned to
- * its bottom) collapse to the area above the keyboard instead of hiding behind
- * it. The value is cleared when the keyboard closes, falling back to 100dvh.
+ * Detection: capture the visual-viewport height the moment a text field is
+ * focused (before the keyboard animates in), then treat a later shrink of
+ * >100px as the keyboard. This works in both a browser tab and an installed
+ * PWA, where `window.innerHeight` behaves inconsistently.
+ *
+ * Side effects on <html>, applied synchronously so there's no render gap:
+ *  - `--app-h` = visible viewport height (the fixed shell is
+ *    `h-[var(--app-h,100dvh)]`, so it collapses to the area above the keyboard)
+ *  - `.kb-open` class (CSS hides the bottom nav)
  */
 export function useKeyboardOpen(): boolean {
   const [open, setOpen] = useState(false);
@@ -28,23 +32,37 @@ export function useKeyboardOpen(): boolean {
     if (!vv) return;
     const root = document.documentElement;
     let focused = false;
+    let baseline = 0;
+
+    const setKeyboard = (on: boolean) => {
+      setOpen(on);
+      if (on) {
+        root.style.setProperty("--app-h", `${Math.round(vv.height)}px`);
+        root.classList.add("kb-open");
+      } else {
+        root.style.removeProperty("--app-h");
+        root.classList.remove("kb-open");
+      }
+    };
 
     const sync = () => {
-      const shrink = window.innerHeight - vv.height;
-      const kb = focused && shrink > 120;
-      setOpen(kb);
-      if (kb) root.style.setProperty("--app-h", `${Math.round(vv.height)}px`);
-      else root.style.removeProperty("--app-h");
+      // baseline tracks the tallest viewport seen this focus session, so
+      // switching between fields (keyboard already up) still counts as open
+      if (focused && vv.height > baseline) baseline = vv.height;
+      const on = focused && baseline > 0 && vv.height < baseline - 100;
+      setKeyboard(on);
     };
     const onFocusIn = (e: FocusEvent) => {
       if (isEditable(e.target)) {
         focused = true;
+        if (vv.height > baseline) baseline = vv.height;
         sync();
       }
     };
     const onFocusOut = () => {
       focused = false;
-      sync();
+      baseline = 0;
+      setKeyboard(false);
     };
 
     vv.addEventListener("resize", sync);
@@ -57,6 +75,7 @@ export function useKeyboardOpen(): boolean {
       window.removeEventListener("focusin", onFocusIn);
       window.removeEventListener("focusout", onFocusOut);
       root.style.removeProperty("--app-h");
+      root.classList.remove("kb-open");
     };
   }, []);
 

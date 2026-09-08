@@ -59,7 +59,7 @@ export function BottomNav() {
   return (
     <nav
       hidden={keyboardOpen}
-      className="shrink-0 border-t border-border bg-surface"
+      className="app-bottom-nav shrink-0 border-t border-border bg-surface"
     >
       <ul className="mx-auto flex max-w-lg items-stretch justify-around pb-[env(safe-area-inset-bottom)]">
         {TABS.map(({ href, label, Icon, match, badge }) => {

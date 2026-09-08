@@ -38,6 +38,12 @@ html {
   color-scheme: light dark;
 }
 
+/* While the mobile keyboard is up, drop the bottom nav so it can't sit
+   between the composer and the keyboard. Set synchronously in useKeyboardOpen. */
+html.kb-open .app-bottom-nav {
+  display: none !important;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
