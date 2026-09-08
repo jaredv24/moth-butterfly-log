@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { LifeListCard } from "@/components/LifeListCard";
 import { LogView } from "@/components/LogView";
 import { MapView } from "@/components/MapView";
@@ -20,8 +20,17 @@ type FriendLog = LogResponse & {
 };
 
 export default function FriendLogPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-muted">Loading…</p>}>
+      <FriendLog />
+    </Suspense>
+  );
+}
+
+function FriendLog() {
   const { code } = useUserCode();
   const fid = String(useParams().fid ?? "");
+  const focusSightingId = useSearchParams().get("sighting");
   const [data, setData] = useState<FriendLog | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error" | "forbidden">(
     "loading",
@@ -125,6 +134,7 @@ export default function FriendLogPage() {
           status={status === "ready" ? "ready" : status === "error" ? "error" : "loading"}
           refetch={refetch}
           readOnly
+          focusSightingId={focusSightingId}
         />
       ) : (
         <MapView

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Lightbox } from "@/components/Lightbox";
 import { ShareSightingSheet } from "@/components/ShareSightingSheet";
 import { Thumb } from "@/components/Thumb";
 import type { LogItem } from "@/lib/types";
@@ -21,22 +22,31 @@ function fmt(iso: string) {
 export function SightingSheet({
   sightings,
   code,
+  owned = true,
   onClose,
 }: {
   sightings: LogItem[];
   /** the viewer's own code — enables "Send to a friend" (own log only) */
   code?: string | null;
+  /** false when viewing someone else's log (changes the copy) */
+  owned?: boolean;
   onClose: () => void;
 }) {
   const [shareFor, setShareFor] = useState<LogItem | null>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const [zoom, setZoom] = useState<{ src: string; alt: string } | null>(null);
   if (sightings.length === 0) return null;
   const rows = [...sightings].sort((a, b) =>
     b.observedAt.localeCompare(a.observedAt),
   );
   const head = rows[0];
   const group =
-    head.otherGroup ?? (head.speciesId != null ? "On your checklist" : null);
+    head.otherGroup ??
+    (head.speciesId != null
+      ? owned
+        ? "On your checklist"
+        : "On the checklist"
+      : null);
 
   return (
     <>
@@ -51,11 +61,19 @@ export function SightingSheet({
         <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-border" />
 
         <div className="flex items-start gap-3">
-          <Thumb
-            src={head.photoUrl}
-            alt={head.identifiedName}
-            className="h-20 w-20 shrink-0 rounded-xl bg-border object-cover"
-          />
+          <button
+            type="button"
+            onClick={() =>
+              setZoom({ src: head.photoUrl, alt: head.identifiedName })
+            }
+            className="shrink-0"
+          >
+            <Thumb
+              src={head.photoUrl}
+              alt={head.identifiedName}
+              className="h-20 w-20 rounded-xl bg-border object-cover"
+            />
+          </button>
           <div className="min-w-0">
             <h2 className="text-lg font-bold">{head.identifiedName}</h2>
             {head.identifiedName.toLowerCase() !==
@@ -69,16 +87,24 @@ export function SightingSheet({
         </div>
 
         <h3 className="mt-5 mb-2 text-sm font-semibold">
-          Your sightings ({rows.length})
+          {owned ? "Your sightings" : "Sightings"} ({rows.length})
         </h3>
         <ul className="space-y-3">
           {rows.map((s) => (
             <li key={s.id} className="flex gap-3">
-              <Thumb
-                src={s.photoUrl}
-                alt=""
-                className="h-16 w-16 shrink-0 rounded-lg bg-border object-cover"
-              />
+              <button
+                type="button"
+                onClick={() =>
+                  setZoom({ src: s.photoUrl, alt: s.identifiedName })
+                }
+                className="shrink-0"
+              >
+                <Thumb
+                  src={s.photoUrl}
+                  alt=""
+                  className="h-16 w-16 rounded-lg bg-border object-cover"
+                />
+              </button>
               <div className="min-w-0 flex-1 text-sm">
                 <div className="font-medium">{fmt(s.observedAt)}</div>
                 {s.placeLabel && (
@@ -142,6 +168,14 @@ export function SightingSheet({
             setShareFor(null);
             setSentTo(userId);
           }}
+        />
+      )}
+
+      {zoom && (
+        <Lightbox
+          src={zoom.src}
+          alt={zoom.alt}
+          onClose={() => setZoom(null)}
         />
       )}
     </>

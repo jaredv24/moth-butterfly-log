@@ -19,7 +19,20 @@ export function useUnread(code: string | null, intervalMs = 30_000) {
         const r = await fetch(`/api/messages/unread?code=${code}`);
         if (!r.ok) return;
         const d = await r.json();
-        if (!stop) setCount(d.count ?? 0);
+        const n: number = d.count ?? 0;
+        if (!stop) setCount(n);
+        // Home Screen app-icon badge (iOS 16.4+, Chrome). Best-effort: only
+        // updates while the app is open — real background push is separate.
+        try {
+          const nav = navigator as Navigator & {
+            setAppBadge?: (n?: number) => Promise<void>;
+            clearAppBadge?: () => Promise<void>;
+          };
+          if (n > 0) void nav.setAppBadge?.(n);
+          else void nav.clearAppBadge?.();
+        } catch {
+          /* unsupported */
+        }
       } catch {
         /* offline — keep last value */
       }

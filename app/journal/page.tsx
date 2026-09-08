@@ -75,7 +75,13 @@ function Journal() {
       </div>
 
       {tab === "log" ? (
-        <LogView code={code} data={data} status={status} refetch={refetch} />
+        <LogView
+          code={code}
+          data={data}
+          status={status}
+          refetch={refetch}
+          focusSightingId={params.get("sighting")}
+        />
       ) : (
         <ChecklistView code={code} />
       )}

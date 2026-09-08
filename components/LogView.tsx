@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Lightbox } from "@/components/Lightbox";
 import { SeenBadge } from "@/components/SeenBadge";
 import { SightingSheet } from "@/components/SightingSheet";
 import { SpeciesName } from "@/components/SpeciesName";
@@ -14,6 +15,7 @@ export function LogView({
   status,
   refetch,
   readOnly = false,
+  focusSightingId = null,
 }: {
   /** the viewer's login code — used for edit/delete when not read-only */
   code: string | null;
@@ -21,12 +23,36 @@ export function LogView({
   status: "loading" | "ready" | "error";
   refetch: () => void;
   readOnly?: boolean;
+  /** open straight to this one sighting (e.g. from a shared chat link) */
+  focusSightingId?: string | null;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [pickFor, setPickFor] = useState<LogItem | null>(null);
   const [sheetFor, setSheetFor] = useState<string | null>(null);
+  const [zoom, setZoom] = useState<{ src: string; alt: string } | null>(null);
   const [err, setErr] = useState<string | null>(null);
+
+  // a shared chat link (?sighting=<id>) opens straight to that one sighting
+  const [focusDismissed, setFocusDismissed] = useState(false);
+  const focusEntry =
+    focusSightingId && !focusDismissed
+      ? (data?.log.find((e) => e.id === focusSightingId) ?? null)
+      : null;
+
+  useEffect(() => {
+    if (!focusEntry) return;
+    // drop ?sighting= so a refresh / back doesn't reopen the sheet
+    try {
+      const u = new URL(window.location.href);
+      if (u.searchParams.has("sighting")) {
+        u.searchParams.delete("sighting");
+        window.history.replaceState(null, "", u);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [focusEntry]);
 
   const entries = useMemo(
     () =>
@@ -131,6 +157,9 @@ export function LogView({
                 open={openId === e.id}
                 busy={busyId === e.id}
                 onOpen={() => setSheetFor(e.identifiedScientific)}
+                onZoom={() =>
+                  setZoom({ src: e.photoUrl, alt: e.identifiedName })
+                }
                 onToggle={() => setOpenId(openId === e.id ? null : e.id)}
                 onChange={() => setPickFor(e)}
                 onDelete={() => del(e)}
@@ -155,6 +184,9 @@ export function LogView({
                 open={openId === e.id}
                 busy={busyId === e.id}
                 onOpen={() => setSheetFor(e.identifiedScientific)}
+                onZoom={() =>
+                  setZoom({ src: e.photoUrl, alt: e.identifiedName })
+                }
                 onToggle={() => setOpenId(openId === e.id ? null : e.id)}
                 onChange={() => setPickFor(e)}
                 onDelete={() => del(e)}
@@ -172,15 +204,28 @@ export function LogView({
         />
       )}
 
-      {sheetFor && (
+      {(focusEntry || sheetFor) && (
         <SightingSheet
-          sightings={entries.filter(
-            (e) =>
-              e.identifiedScientific.toLowerCase() === sheetFor.toLowerCase(),
-          )}
+          sightings={
+            focusEntry
+              ? [focusEntry]
+              : entries.filter(
+                  (e) =>
+                    e.identifiedScientific.toLowerCase() ===
+                    sheetFor!.toLowerCase(),
+                )
+          }
           code={readOnly ? null : code}
-          onClose={() => setSheetFor(null)}
+          owned={!readOnly}
+          onClose={() => {
+            setSheetFor(null);
+            if (focusEntry) setFocusDismissed(true);
+          }}
         />
+      )}
+
+      {zoom && (
+        <Lightbox src={zoom.src} alt={zoom.alt} onClose={() => setZoom(null)} />
       )}
     </div>
   );
@@ -193,6 +238,7 @@ function LogCard({
   open,
   busy,
   onOpen,
+  onZoom,
   onToggle,
   onChange,
   onDelete,
@@ -203,6 +249,7 @@ function LogCard({
   open: boolean;
   busy: boolean;
   onOpen: () => void;
+  onZoom: () => void;
   onToggle: () => void;
   onChange: () => void;
   onDelete: () => void;
@@ -214,6 +261,18 @@ function LogCard({
       }`}
     >
       <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={onZoom}
+          aria-label="View photo"
+          className="shrink-0"
+        >
+          <Thumb
+            src={entry.photoUrl}
+            alt={entry.identifiedName}
+            className="h-20 w-20 rounded-lg bg-border object-cover"
+          />
+        </button>
         <div
           role="button"
           tabIndex={0}
@@ -221,11 +280,6 @@ function LogCard({
           onKeyDown={(e) => e.key === "Enter" && onOpen()}
           className="flex min-w-0 flex-1 cursor-pointer gap-3"
         >
-          <Thumb
-            src={entry.photoUrl}
-            alt={entry.identifiedName}
-            className="h-20 w-20 shrink-0 rounded-lg bg-border object-cover"
-          />
           <div className="min-w-0 flex-1">
             <SpeciesName
               common={entry.identifiedName}

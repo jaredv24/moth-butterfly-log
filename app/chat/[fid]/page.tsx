@@ -142,7 +142,11 @@ export default function ChatThreadPage() {
             {m.sighting && (
               <SharedSightingCard
                 sighting={m.sighting}
-                href={m.mine ? null : `/friend/${fid}`}
+                href={
+                  m.mine
+                    ? `/journal?sighting=${m.sighting.id}`
+                    : `/friend/${fid}?sighting=${m.sighting.id}`
+                }
               />
             )}
             {m.body && (
