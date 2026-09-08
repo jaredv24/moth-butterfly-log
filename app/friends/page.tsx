@@ -4,6 +4,7 @@ import Link from "next/link";
 import QRCode from "qrcode";
 import { useCallback, useEffect, useState } from "react";
 import { RevealCode } from "@/components/RevealCode";
+import { useUnread } from "@/lib/useUnread";
 import { useUserCode } from "@/lib/useUserCode";
 
 type Following = {
@@ -40,6 +41,7 @@ function active(iso: string | null): string {
 
 export default function FriendsPage() {
   const { code, username, loading } = useUserCode();
+  const unread = useUnread(code);
   const [friendCode, setFriendCode] = useState<string | null>(null);
   const [following, setFollowing] = useState<Following[]>([]);
   const [followers, setFollowers] = useState<Follower[]>([]);
@@ -132,6 +134,21 @@ export default function FriendsPage() {
         </p>
       </header>
 
+      <Link
+        href="/chat"
+        className="flex items-center justify-between rounded-xl border border-border bg-surface p-3"
+      >
+        <span className="text-sm font-semibold">Messages</span>
+        <span className="flex items-center gap-2 text-sm text-muted">
+          {unread > 0 && (
+            <span className="grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1.5 text-[11px] font-bold text-accent-fg">
+              {unread > 9 ? "9+" : unread}
+            </span>
+          )}
+          <span aria-hidden>→</span>
+        </span>
+      </Link>
+
       {needsUsername && (
         <Link
           href="/profile"
@@ -187,6 +204,14 @@ export default function FriendsPage() {
                 {f.speciesCount} species · {active(f.lastActiveAt)}
               </div>
             </Link>
+            {f.mutual && (
+              <Link
+                href={`/chat/${f.userId}`}
+                className="shrink-0 rounded-lg border border-accent px-2.5 py-1 text-xs font-semibold text-accent"
+              >
+                Message
+              </Link>
+            )}
             <button
               onClick={() => unfollow(f)}
               className="shrink-0 px-2 text-xs text-muted"
@@ -208,12 +233,20 @@ export default function FriendsPage() {
           >
             <Avatar url={f.avatarUrl} />
             {f.youFollowBack ? (
-              <Link href={`/friend/${f.userId}`} className="min-w-0 flex-1">
-                <NameRow name={f.name} badge="mutual" />
-                <div className="text-xs text-muted">
-                  {f.speciesCount} species · {active(f.lastActiveAt)}
-                </div>
-              </Link>
+              <>
+                <Link href={`/friend/${f.userId}`} className="min-w-0 flex-1">
+                  <NameRow name={f.name} badge="mutual" />
+                  <div className="text-xs text-muted">
+                    {f.speciesCount} species · {active(f.lastActiveAt)}
+                  </div>
+                </Link>
+                <Link
+                  href={`/chat/${f.userId}`}
+                  className="shrink-0 rounded-lg border border-accent px-2.5 py-1 text-xs font-semibold text-accent"
+                >
+                  Message
+                </Link>
+              </>
             ) : (
               <div className="min-w-0 flex-1">
                 <NameRow name={f.name} badge={null} />

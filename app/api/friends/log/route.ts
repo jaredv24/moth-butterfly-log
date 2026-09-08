@@ -18,12 +18,20 @@ export async function GET(req: Request) {
   const me = await findUser(code);
   if (!me) return NextResponse.json({ error: "unknown code" }, { status: 404 });
 
-  const link = await db.query.friendships.findFirst({
-    where: and(
-      eq(friendships.ownerUserId, me.id),
-      eq(friendships.friendUserId, friendUserId),
-    ),
-  });
+  const [link, back] = await Promise.all([
+    db.query.friendships.findFirst({
+      where: and(
+        eq(friendships.ownerUserId, me.id),
+        eq(friendships.friendUserId, friendUserId),
+      ),
+    }),
+    db.query.friendships.findFirst({
+      where: and(
+        eq(friendships.ownerUserId, friendUserId),
+        eq(friendships.friendUserId, me.id),
+      ),
+    }),
+  ]);
   if (!link) {
     return NextResponse.json({ error: "not your friend" }, { status: 403 });
   }
@@ -40,6 +48,7 @@ export async function GET(req: Request) {
       name:
         friend?.username ?? link.nickname ?? friend?.inatUsername ?? "Friend",
       avatarUrl: friend?.avatarUrl ?? null,
+      mutual: !!back,
     },
   });
 }

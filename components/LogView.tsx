@@ -178,6 +178,7 @@ export function LogView({
             (e) =>
               e.identifiedScientific.toLowerCase() === sheetFor.toLowerCase(),
           )}
+          code={readOnly ? null : code}
           onClose={() => setSheetFor(null)}
         />
       )}

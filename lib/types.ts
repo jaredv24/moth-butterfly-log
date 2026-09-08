@@ -73,6 +73,43 @@ export type InatStatus = {
   unsyncedCount: number;
 };
 
+/** A sighting summary as embedded in a chat message. */
+export type SharedSighting = {
+  id: string;
+  identifiedName: string;
+  identifiedScientific: string;
+  photoUrl: string;
+  placeLabel: string | null;
+  observedAt: string;
+  ownerUserId: string;
+};
+
+export type ChatMessage = {
+  id: string;
+  body: string | null;
+  sighting: SharedSighting | null;
+  at: string;
+  mine: boolean;
+};
+
+export type ChatThreadSummary = {
+  userId: string;
+  name: string | null;
+  avatarUrl: string | null;
+  lastMessage: { preview: string; at: string; mine: boolean } | null;
+  unread: number;
+};
+
+export type ThreadsResponse = {
+  threads: ChatThreadSummary[];
+  totalUnread: number;
+};
+
+export type ThreadResponse = {
+  friend: { userId: string; name: string | null; avatarUrl: string | null };
+  messages: ChatMessage[];
+};
+
 export type LogResponse = {
   log: LogItem[];
   stats: {

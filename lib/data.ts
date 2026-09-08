@@ -1,6 +1,6 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { checklistSpecies, sightings, users } from "@/db/schema";
+import { checklistSpecies, friendships, sightings, users } from "@/db/schema";
 import { generateFriendCode, generateUserCode } from "./code";
 
 export async function getOrCreateUser(
@@ -52,6 +52,44 @@ export async function getOrCreateFriendCode(userId: string): Promise<string> {
     return fresh;
   }
   throw new Error("could not generate a unique friend code");
+}
+
+/** User ids that both follow `userId` and are followed by `userId`. */
+export async function listMutualIds(userId: string): Promise<string[]> {
+  const iFollow = await db
+    .select({ id: friendships.friendUserId })
+    .from(friendships)
+    .where(eq(friendships.ownerUserId, userId));
+  if (!iFollow.length) return [];
+  const ids = iFollow.map((r) => r.id);
+  const back = await db
+    .select({ id: friendships.ownerUserId })
+    .from(friendships)
+    .where(
+      and(
+        eq(friendships.friendUserId, userId),
+        inArray(friendships.ownerUserId, ids),
+      ),
+    );
+  return back.map((r) => r.id);
+}
+
+export async function areMutual(a: string, b: string): Promise<boolean> {
+  const links = await db
+    .select({
+      owner: friendships.ownerUserId,
+      friend: friendships.friendUserId,
+    })
+    .from(friendships)
+    .where(
+      and(
+        inArray(friendships.ownerUserId, [a, b]),
+        inArray(friendships.friendUserId, [a, b]),
+      ),
+    );
+  const aFollowsB = links.some((l) => l.owner === a && l.friend === b);
+  const bFollowsA = links.some((l) => l.owner === b && l.friend === a);
+  return aFollowsB && bFollowsA;
 }
 
 let checklistCache: (typeof checklistSpecies.$inferSelect)[] | null = null;

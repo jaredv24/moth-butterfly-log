@@ -9,6 +9,8 @@ import {
   IconMap,
   IconProfile,
 } from "@/components/TabIcons";
+import { useUnread } from "@/lib/useUnread";
+import { useUserCode } from "@/lib/useUserCode";
 
 const TABS = [
   {
@@ -30,7 +32,8 @@ const TABS = [
     href: "/friends",
     label: "Friends",
     Icon: IconFriends,
-    match: (p: string) => p.startsWith("/friend"),
+    match: (p: string) => p.startsWith("/friend") || p.startsWith("/chat"),
+    badge: true,
   },
   {
     href: "/map",
@@ -48,10 +51,13 @@ const TABS = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { code } = useUserCode();
+  const unread = useUnread(code);
+
   return (
     <nav className="shrink-0 border-t border-border bg-surface">
       <ul className="mx-auto flex max-w-lg items-stretch justify-around pb-[env(safe-area-inset-bottom)]">
-        {TABS.map(({ href, label, Icon, match }) => {
+        {TABS.map(({ href, label, Icon, match, badge }) => {
           const active = match(pathname);
           return (
             <li key={href} className="flex-1">
@@ -61,7 +67,14 @@ export function BottomNav() {
                   active ? "text-accent" : "text-muted"
                 }`}
               >
-                <Icon className="h-6 w-6" />
+                <span className="relative">
+                  <Icon className="h-6 w-6" />
+                  {badge && unread > 0 && (
+                    <span className="absolute -right-2 -top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-accent px-1 text-[10px] font-bold leading-none text-accent-fg">
+                      {unread > 9 ? "9+" : unread}
+                    </span>
+                  )}
+                </span>
                 {label}
               </Link>
             </li>

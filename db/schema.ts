@@ -125,6 +125,39 @@ export const friendships = pgTable(
   ],
 );
 
+/** A direct message between two users. Only exchanged between mutual follows. */
+export const messages = pgTable(
+  "messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    senderUserId: uuid("sender_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    recipientUserId: uuid("recipient_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    // free text (optional when a sighting is attached)
+    body: text("body"),
+    // an attached sighting the sender shared (belongs to the sender)
+    sightingId: uuid("sighting_id").references(() => sightings.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("messages_pair_idx").on(
+      t.senderUserId,
+      t.recipientUserId,
+      t.createdAt,
+    ),
+    index("messages_unread_idx").on(t.recipientUserId, t.readAt),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type ChecklistSpecies = typeof checklistSpecies.$inferSelect;
 export type Sighting = typeof sightings.$inferSelect;
+export type Message = typeof messages.$inferSelect;

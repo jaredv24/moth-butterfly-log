@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { useState } from "react";
+import { ShareSightingSheet } from "@/components/ShareSightingSheet";
 import { Thumb } from "@/components/Thumb";
 import type { LogItem } from "@/lib/types";
 
@@ -17,11 +20,16 @@ function fmt(iso: string) {
  */
 export function SightingSheet({
   sightings,
+  code,
   onClose,
 }: {
   sightings: LogItem[];
+  /** the viewer's own code — enables "Send to a friend" (own log only) */
+  code?: string | null;
   onClose: () => void;
 }) {
+  const [shareFor, setShareFor] = useState<LogItem | null>(null);
+  const [sentTo, setSentTo] = useState<string | null>(null);
   if (sightings.length === 0) return null;
   const rows = [...sightings].sort((a, b) =>
     b.observedAt.localeCompare(a.observedAt),
@@ -31,6 +39,7 @@ export function SightingSheet({
     head.otherGroup ?? (head.speciesId != null ? "On your checklist" : null);
 
   return (
+    <>
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/40"
       onClick={onClose}
@@ -70,12 +79,12 @@ export function SightingSheet({
                 alt=""
                 className="h-16 w-16 shrink-0 rounded-lg bg-border object-cover"
               />
-              <div className="min-w-0 text-sm">
+              <div className="min-w-0 flex-1 text-sm">
                 <div className="font-medium">{fmt(s.observedAt)}</div>
                 {s.placeLabel && (
                   <div className="text-xs text-muted">📍 {s.placeLabel}</div>
                 )}
-                <div className="mt-1 flex flex-wrap gap-1.5 text-[11px] text-muted">
+                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted">
                   {s.confidence != null && (
                     <span>{Math.round(s.confidence * 100)}% match</span>
                   )}
@@ -89,11 +98,31 @@ export function SightingSheet({
                       iNaturalist ↗
                     </a>
                   )}
+                  {code && (
+                    <button
+                      onClick={() => {
+                        setSentTo(null);
+                        setShareFor(s);
+                      }}
+                      className="font-medium text-accent"
+                    >
+                      Send to a friend
+                    </button>
+                  )}
                 </div>
               </div>
             </li>
           ))}
         </ul>
+
+        {sentTo && (
+          <Link
+            href={`/chat/${sentTo}`}
+            className="mt-3 inline-block text-sm font-medium text-accent"
+          >
+            Shared → open the chat
+          </Link>
+        )}
 
         <button
           onClick={onClose}
@@ -103,5 +132,18 @@ export function SightingSheet({
         </button>
       </div>
     </div>
+
+      {shareFor && code && (
+        <ShareSightingSheet
+          code={code}
+          sighting={shareFor}
+          onClose={() => setShareFor(null)}
+          onSent={(userId) => {
+            setShareFor(null);
+            setSentTo(userId);
+          }}
+        />
+      )}
+    </>
   );
 }

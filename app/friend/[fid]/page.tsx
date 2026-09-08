@@ -11,7 +11,12 @@ import type { LogResponse } from "@/lib/types";
 
 type Tab = "log" | "map";
 type FriendLog = LogResponse & {
-  friend: { userId: string; name: string; avatarUrl: string | null };
+  friend: {
+    userId: string;
+    name: string;
+    avatarUrl: string | null;
+    mutual: boolean;
+  };
 };
 
 export default function FriendLogPage() {
@@ -75,7 +80,7 @@ export default function FriendLogPage() {
             👤
           </div>
         )}
-        <div>
+        <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-bold tracking-tight">{name}</h1>
           <p className="text-sm text-muted">
             {status === "ready"
@@ -85,6 +90,14 @@ export default function FriendLogPage() {
                 : "Loading…"}
           </p>
         </div>
+        {data?.friend.mutual && (
+          <Link
+            href={`/chat/${fid}`}
+            className="shrink-0 rounded-lg border border-accent px-3 py-1.5 text-xs font-semibold text-accent"
+          >
+            Message
+          </Link>
+        )}
       </header>
 
       {data && <LifeListCard stats={data.stats} />}
