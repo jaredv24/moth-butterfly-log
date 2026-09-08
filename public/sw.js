@@ -12,7 +12,8 @@ self.addEventListener("push", (event) => {
   } catch {
     data = {};
   }
-  const title = data.title || "New message";
+  // allow an empty title through (iOS still shows the app name)
+  const title = typeof data.title === "string" ? data.title : "New message";
   const body = data.body || "";
   const url = data.url || "/chat";
   const tag = data.tag || "chat";

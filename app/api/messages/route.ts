@@ -202,9 +202,12 @@ export async function POST(req: Request) {
         );
       const senderName =
         me.username?.trim() || me.inatUsername || "A friend";
+      const preview = body ? body.slice(0, 140) : "📷 Shared a sighting";
+      // iOS forces " from <app name>" onto the notification title, so keep the
+      // title empty and put everything meaningful in the body — one clean line.
       await pushToUser(to, {
-        title: senderName,
-        body: body ? body.slice(0, 140) : "📷 Shared a sighting",
+        title: "",
+        body: `${senderName}: ${preview}`,
         url: `/chat/${me.id}`,
         badgeCount: u?.n ?? 0,
         tag: `chat-${me.id}`,
