@@ -31,6 +31,12 @@ export default function ChatThreadPage() {
   const endRef = useRef<HTMLDivElement>(null);
   const lastCountRef = useRef(0);
 
+  // let CSS give this route a full-bleed, non-scrolling <main>
+  useEffect(() => {
+    document.documentElement.classList.add("chat-open");
+    return () => document.documentElement.classList.remove("chat-open");
+  }, []);
+
   const load = useCallback(() => {
     if (!code) return;
     fetch(`/api/messages/thread?code=${code}&friend=${fid}`)
@@ -108,7 +114,7 @@ export default function ChatThreadPage() {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col -mb-8">
+    <div className="flex min-h-0 flex-1 flex-col">
       <header className="flex items-center gap-3 border-b border-border pb-3">
         <Link href="/chat" className="text-sm font-medium text-accent">
           ←

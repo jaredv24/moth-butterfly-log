@@ -23,6 +23,8 @@ function isEditable(el: EventTarget | null): boolean {
  *  - `--app-h` = visible viewport height (the fixed shell is
  *    `h-[var(--app-h,100dvh)]`, so it collapses to the area above the keyboard)
  *  - `.kb-open` class (CSS hides the bottom nav)
+ *  - undoes iOS's "scroll the page up to reveal the focused field", which
+ *    otherwise shoves the whole fixed shell off the top of the screen
  */
 export function useKeyboardOpen(): boolean {
   const [open, setOpen] = useState(false);
@@ -34,11 +36,18 @@ export function useKeyboardOpen(): boolean {
     let focused = false;
     let baseline = 0;
 
+    const pinToTop = () => {
+      window.scrollTo(0, 0);
+      root.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+
     const setKeyboard = (on: boolean) => {
       setOpen(on);
       if (on) {
         root.style.setProperty("--app-h", `${Math.round(vv.height)}px`);
         root.classList.add("kb-open");
+        pinToTop();
       } else {
         root.style.removeProperty("--app-h");
         root.classList.remove("kb-open");

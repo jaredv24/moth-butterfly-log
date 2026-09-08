@@ -44,6 +44,17 @@ html.kb-open .app-bottom-nav {
   display: none !important;
 }
 
+/* The chat conversation view manages its own height: full-bleed vertically,
+   and <main> must not scroll (only the message list does) so iOS can't drift
+   the composer while a field is focused. `chat-open` is toggled by the page. */
+html.chat-open main {
+  overflow: hidden !important;
+}
+html.chat-open main > div {
+  padding-top: 0.5rem;
+  padding-bottom: 0;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
