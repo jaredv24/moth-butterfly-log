@@ -119,7 +119,7 @@ export default function ChatThreadPage() {
         </Link>
       </header>
 
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain py-4">
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-1.5 py-4">
         {status === "loading" && (
           <p className="text-sm text-muted">Loading…</p>
         )}
