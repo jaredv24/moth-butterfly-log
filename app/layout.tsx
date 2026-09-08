@@ -41,9 +41,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         bottom nav rock-steady on iOS (position:fixed bottom bars jump around
         when Safari's toolbar collapses).
       */}
-      <body className="flex h-[100dvh] flex-col overflow-hidden">
+      <body className="flex h-[var(--app-h,100dvh)] flex-col overflow-hidden">
         <main className="flex flex-1 flex-col overflow-y-auto overscroll-contain">
-          <div className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 pt-5 pb-8">
+          <div className="mx-auto flex w-full min-h-0 max-w-lg flex-1 flex-col px-4 pt-5 pb-8">
             {children}
           </div>
         </main>

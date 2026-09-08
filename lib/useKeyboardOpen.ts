@@ -13,8 +13,12 @@ function isEditable(el: EventTarget | null): boolean {
 
 /**
  * True while the on-screen keyboard is (very likely) open: a text field is
- * focused and the visual viewport has shrunk noticeably. Used to hide the
- * bottom nav so it doesn't float in the middle of the screen.
+ * focused and the visual viewport has shrunk noticeably.
+ *
+ * Side effect: while the keyboard is open, sets `--app-h` on <html> to the
+ * visible viewport height so the fixed shell (and the chat composer pinned to
+ * its bottom) collapse to the area above the keyboard instead of hiding behind
+ * it. The value is cleared when the keyboard closes, falling back to 100dvh.
  */
 export function useKeyboardOpen(): boolean {
   const [open, setOpen] = useState(false);
@@ -22,11 +26,15 @@ export function useKeyboardOpen(): boolean {
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
+    const root = document.documentElement;
     let focused = false;
 
     const sync = () => {
       const shrink = window.innerHeight - vv.height;
-      setOpen(focused && shrink > 120);
+      const kb = focused && shrink > 120;
+      setOpen(kb);
+      if (kb) root.style.setProperty("--app-h", `${Math.round(vv.height)}px`);
+      else root.style.removeProperty("--app-h");
     };
     const onFocusIn = (e: FocusEvent) => {
       if (isEditable(e.target)) {
@@ -36,16 +44,19 @@ export function useKeyboardOpen(): boolean {
     };
     const onFocusOut = () => {
       focused = false;
-      setOpen(false);
+      sync();
     };
 
     vv.addEventListener("resize", sync);
+    vv.addEventListener("scroll", sync);
     window.addEventListener("focusin", onFocusIn);
     window.addEventListener("focusout", onFocusOut);
     return () => {
       vv.removeEventListener("resize", sync);
+      vv.removeEventListener("scroll", sync);
       window.removeEventListener("focusin", onFocusIn);
       window.removeEventListener("focusout", onFocusOut);
+      root.style.removeProperty("--app-h");
     };
   }, []);
 

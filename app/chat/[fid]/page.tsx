@@ -108,7 +108,7 @@ export default function ChatThreadPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col -mb-8">
       <header className="flex items-center gap-3 border-b border-border pb-3">
         <Link href="/chat" className="text-sm font-medium text-accent">
           ←
@@ -119,7 +119,7 @@ export default function ChatThreadPage() {
         </Link>
       </header>
 
-      <div className="flex-1 space-y-3 py-4">
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain py-4">
         {status === "loading" && (
           <p className="text-sm text-muted">Loading…</p>
         )}
@@ -169,7 +169,7 @@ export default function ChatThreadPage() {
             const t = text.trim();
             if (t && !sending) post({ body: t });
           }}
-          className="sticky bottom-0 -mx-4 flex items-end gap-2 border-t border-border bg-background px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+          className="-mx-4 flex items-end gap-2 border-t border-border bg-background px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
         >
           <button
             type="button"
