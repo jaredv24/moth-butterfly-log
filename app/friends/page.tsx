@@ -206,36 +206,6 @@ export default function FriendsPage() {
         </Link>
       )}
 
-      <RevealCode
-        value={friendCode}
-        loading={loading || status === "loading"}
-        label="Your friend code"
-        qr={qr}
-        qrAlt="Friend code QR"
-        note="Different from your MOTH- login code; grants read-only access only."
-      />
-
-      <section className="space-y-3 rounded-2xl border border-border bg-surface p-5">
-        <h2 className="text-sm font-semibold">Add a friend</h2>
-        <form onSubmit={follow} className="flex gap-2">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="PAL-XXXXXXXX"
-            autoCapitalize="characters"
-            className="flex-1 rounded-xl border border-border bg-background px-3 py-2 font-mono text-sm uppercase outline-none focus:border-accent"
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || busy}
-            className="rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-50"
-          >
-            {busy ? "…" : "Add"}
-          </button>
-        </form>
-        {msg && <p className="text-sm text-accent">{msg}</p>}
-      </section>
-
       <section className="space-y-2">
         <h2 className="text-sm font-semibold">
           Friends{" "}
@@ -321,6 +291,36 @@ export default function FriendsPage() {
           })}
         </ul>
       </section>
+
+      <section className="space-y-3 rounded-2xl border border-border bg-surface p-5">
+        <h2 className="text-sm font-semibold">Add a friend</h2>
+        <form onSubmit={follow} className="flex gap-2">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="PAL-XXXXXXXX"
+            autoCapitalize="characters"
+            className="flex-1 rounded-xl border border-border bg-background px-3 py-2 font-mono text-sm uppercase outline-none focus:border-accent"
+          />
+          <button
+            type="submit"
+            disabled={!input.trim() || busy}
+            className="rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-50"
+          >
+            {busy ? "…" : "Add"}
+          </button>
+        </form>
+        {msg && <p className="text-sm text-accent">{msg}</p>}
+      </section>
+
+      <RevealCode
+        value={friendCode}
+        loading={loading || status === "loading"}
+        label="Your friend code"
+        qr={qr}
+        qrAlt="Friend code QR"
+        note="Different from your MOTH- login code; grants read-only access only."
+      />
     </div>
   );
 }
