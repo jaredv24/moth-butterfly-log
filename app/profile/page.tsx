@@ -3,6 +3,7 @@
 import QRCode from "qrcode";
 import { useEffect, useRef, useState } from "react";
 import { InatConnect } from "@/components/InatConnect";
+import { RevealCode } from "@/components/RevealCode";
 import { useUserCode } from "@/lib/useUserCode";
 
 export default function SettingsPage() {
@@ -13,7 +14,6 @@ export default function SettingsPage() {
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [needPwForCode, setNeedPwForCode] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
 
   // password protection
@@ -122,17 +122,6 @@ export default function SettingsPage() {
       .catch(() => setQr(null));
   }, [code]);
 
-  async function copy() {
-    if (!code) return;
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      /* clipboard unavailable */
-    }
-  }
-
   async function apply(e: React.FormEvent) {
     e.preventDefault();
     setMsg(null);
@@ -238,31 +227,16 @@ export default function SettingsPage() {
         )}
       </section>
 
-      <section className="space-y-3 rounded-2xl border border-border bg-surface p-5 text-center">
-        <p className="text-xs uppercase tracking-wide text-muted">Your log code</p>
-        <p className="font-mono text-2xl font-bold tracking-wider">
-          {loading ? "…" : (code ?? "unavailable")}
-        </p>
-        {qr && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={qr}
-            alt="QR code for your log"
-            className="mx-auto h-44 w-44 rounded-lg bg-white p-2"
-          />
-        )}
-        <p className="text-xs text-muted">
-          Screenshot this QR, or copy the code. Scanning it on another phone opens
-          your log there.
-        </p>
-        <button
-          onClick={copy}
-          disabled={!code}
-          className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-fg disabled:opacity-50"
-        >
-          {copied ? "Copied ✓" : "Copy code"}
-        </button>
-      </section>
+      <RevealCode
+        value={code}
+        loading={loading}
+        label="Your log code"
+        qr={qr}
+        qrAlt="QR code for your log"
+        helpText="Screenshot this QR, or copy the code. Scanning it on another phone opens your log there."
+        note="Anyone with this code has full access to your log. Keep it private."
+        autoHideSeconds={30}
+      />
 
       <section className="space-y-3 rounded-2xl border border-border bg-surface p-5">
         <h2 className="text-sm font-semibold">Open a different log</h2>

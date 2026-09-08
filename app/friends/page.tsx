@@ -3,6 +3,7 @@
 import Link from "next/link";
 import QRCode from "qrcode";
 import { useCallback, useEffect, useState } from "react";
+import { RevealCode } from "@/components/RevealCode";
 import { useUserCode } from "@/lib/useUserCode";
 
 type Following = {
@@ -44,7 +45,6 @@ export default function FriendsPage() {
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [qr, setQr] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
 
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -73,17 +73,6 @@ export default function FriendsPage() {
       .then(setQr)
       .catch(() => setQr(null));
   }, [friendCode]);
-
-  async function copy() {
-    if (!friendCode) return;
-    try {
-      await navigator.clipboard.writeText(friendCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      /* clipboard unavailable */
-    }
-  }
 
   async function follow(e: React.FormEvent) {
     e.preventDefault();
@@ -152,32 +141,14 @@ export default function FriendsPage() {
         </Link>
       )}
 
-      <section className="space-y-3 rounded-2xl border border-border bg-surface p-5 text-center">
-        <p className="text-xs uppercase tracking-wide text-muted">
-          Your friend code
-        </p>
-        <p className="font-mono text-xl font-bold tracking-wider">
-          {loading || status === "loading" ? "…" : (friendCode ?? "unavailable")}
-        </p>
-        {qr && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={qr}
-            alt="Friend code QR"
-            className="mx-auto h-40 w-40 rounded-lg bg-white p-2"
-          />
-        )}
-        <button
-          onClick={copy}
-          disabled={!friendCode}
-          className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-accent-fg disabled:opacity-50"
-        >
-          {copied ? "Copied ✓" : "Copy code"}
-        </button>
-        <p className="text-[11px] text-muted">
-          Different from your MOTH- login code; grants read-only access only.
-        </p>
-      </section>
+      <RevealCode
+        value={friendCode}
+        loading={loading || status === "loading"}
+        label="Your friend code"
+        qr={qr}
+        qrAlt="Friend code QR"
+        note="Different from your MOTH- login code; grants read-only access only."
+      />
 
       <section className="space-y-3 rounded-2xl border border-border bg-surface p-5">
         <h2 className="text-sm font-semibold">Follow someone</h2>
