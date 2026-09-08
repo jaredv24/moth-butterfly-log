@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { and, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { messages, sightings, users } from "@/db/schema";
 import { isValidUserCode, normalizeUserCode } from "@/lib/code";
 import { areMutual, findUser, listMutualIds } from "@/lib/data";
+import { pushToUser } from "@/lib/push-send";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import type { ChatMessage, SharedSighting } from "@/lib/types";
 
@@ -190,5 +191,28 @@ export async function POST(req: Request) {
     at: row.createdAt.toISOString(),
     mine: true,
   };
+
+  after(async () => {
+    try {
+      const [u] = await db
+        .select({ n: sql<number>`count(*)::int` })
+        .from(messages)
+        .where(
+          and(eq(messages.recipientUserId, to), isNull(messages.readAt)),
+        );
+      const senderName =
+        me.username?.trim() || me.inatUsername || "A friend";
+      await pushToUser(to, {
+        title: senderName,
+        body: body ? body.slice(0, 140) : "📷 Shared a sighting",
+        url: `/chat/${me.id}`,
+        badgeCount: u?.n ?? 0,
+        tag: `chat-${me.id}`,
+      });
+    } catch {
+      /* push is best-effort */
+    }
+  });
+
   return NextResponse.json({ message: msg });
 }

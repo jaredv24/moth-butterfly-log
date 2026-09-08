@@ -3,6 +3,7 @@
 import QRCode from "qrcode";
 import { useEffect, useRef, useState } from "react";
 import { InatConnect } from "@/components/InatConnect";
+import { NotificationsCard } from "@/components/NotificationsCard";
 import { RevealCode } from "@/components/RevealCode";
 import { useUserCode } from "@/lib/useUserCode";
 
@@ -226,6 +227,8 @@ export default function SettingsPage() {
           <p className="text-sm text-red-600 dark:text-red-400">{nameErr}</p>
         )}
       </section>
+
+      <NotificationsCard code={code} />
 
       <RevealCode
         value={code}

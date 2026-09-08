@@ -157,6 +157,24 @@ export const messages = pgTable(
   ],
 );
 
+/** A Web Push subscription for one browser/device of a user. */
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull().unique(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("push_subscriptions_user_idx").on(t.userId)],
+);
+
 export type User = typeof users.$inferSelect;
 export type ChecklistSpecies = typeof checklistSpecies.$inferSelect;
 export type Sighting = typeof sightings.$inferSelect;
