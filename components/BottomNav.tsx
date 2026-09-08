@@ -9,6 +9,7 @@ import {
   IconMap,
   IconProfile,
 } from "@/components/TabIcons";
+import { useKeyboardOpen } from "@/lib/useKeyboardOpen";
 import { useUnread } from "@/lib/useUnread";
 import { useUserCode } from "@/lib/useUserCode";
 
@@ -53,9 +54,13 @@ export function BottomNav() {
   const pathname = usePathname();
   const { code } = useUserCode();
   const unread = useUnread(code);
+  const keyboardOpen = useKeyboardOpen();
 
   return (
-    <nav className="shrink-0 border-t border-border bg-surface">
+    <nav
+      hidden={keyboardOpen}
+      className="shrink-0 border-t border-border bg-surface"
+    >
       <ul className="mx-auto flex max-w-lg items-stretch justify-around pb-[env(safe-area-inset-bottom)]">
         {TABS.map(({ href, label, Icon, match, badge }) => {
           const active = match(pathname);
