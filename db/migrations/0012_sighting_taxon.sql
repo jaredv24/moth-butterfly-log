@@ -1,0 +1,1 @@
+ALTER TABLE "sightings" ADD COLUMN "inat_taxon_id" integer;

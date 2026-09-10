@@ -113,6 +113,7 @@ export async function POST(req: Request) {
       lng: body.lng ?? null,
       placeLabel,
       observedAt,
+      inatTaxonId: body.inatTaxonId ?? null,
       otherGroup: speciesId == null ? (body.otherGroup ?? null) : null,
     })
     .returning();
@@ -149,7 +150,14 @@ export async function PATCH(req: Request) {
 
   const [row] = await db
     .update(sightings)
-    .set({ speciesId, identifiedName: name, identifiedScientific: scientificName, matchLevel: "species" })
+    .set({
+      speciesId,
+      identifiedName: name,
+      identifiedScientific: scientificName,
+      matchLevel: "species",
+      otherGroup: null,
+      inatTaxonId: null,
+    })
     .where(eq(sightings.id, sightingId))
     .returning();
   return NextResponse.json({ sighting: row });

@@ -108,6 +108,11 @@ export function ChecklistView({ code }: { code: string | null }) {
 
   return (
     <div className="space-y-4">
+      <p className="rounded-xl border border-border bg-surface p-3 text-xs text-muted">
+        A checklist to work through for butterflies &amp; moths. Beetles, frogs,
+        turtles and everything else are tracked in your <strong>Log</strong> —
+        no checklist, just logged as you find them.
+      </p>
       <p className="text-sm text-muted">
         {seenCount} of {filtered.length}{" "}
         {group === "butterfly" ? "butterflies" : "moths"} logged

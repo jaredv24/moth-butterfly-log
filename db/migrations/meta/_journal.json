@@ -85,6 +85,13 @@
       "when": 1789018325481,
       "tag": "0011_nickname",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789024720770,
+      "tag": "0012_sighting_taxon",
+      "breakpoints": true
     }
   ]
 }

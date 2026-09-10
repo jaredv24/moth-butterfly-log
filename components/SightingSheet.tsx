@@ -83,6 +83,18 @@ export function SightingSheet({
               </p>
             )}
             {group && <p className="mt-1 text-xs text-muted">{group}</p>}
+            <a
+              href={
+                head.inatTaxonId
+                  ? `https://www.inaturalist.org/taxa/${head.inatTaxonId}`
+                  : `https://www.inaturalist.org/taxa/search?q=${encodeURIComponent(head.identifiedScientific)}`
+              }
+              target="_blank"
+              rel="noreferrer"
+              className="mt-1 inline-block text-xs font-medium text-accent"
+            >
+              View on iNaturalist ↗
+            </a>
           </div>
         </div>
 

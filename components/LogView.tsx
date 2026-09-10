@@ -10,6 +10,16 @@ import { Thumb } from "@/components/Thumb";
 import { groupKind } from "@/lib/bug-groups";
 import type { ChecklistItem, LogItem, LogResponse } from "@/lib/types";
 
+const INAT = "https://www.inaturalist.org";
+
+/** Best iNaturalist link for a sighting: the synced observation, else the
+ *  species page, else a name search. */
+function inatUrl(e: LogItem): string {
+  if (e.inatObservationId) return `${INAT}/observations/${e.inatObservationId}`;
+  if (e.inatTaxonId) return `${INAT}/taxa/${e.inatTaxonId}`;
+  return `${INAT}/taxa/search?q=${encodeURIComponent(e.identifiedScientific)}`;
+}
+
 export function LogView({
   code,
   data,
@@ -78,8 +88,6 @@ export function LogView({
     };
   }, [entries]);
 
-  const hasOff = offTiers.arthropod.length > 0 || offTiers.critter.length > 0;
-
   async function del(entry: LogItem) {
     if (!code) return;
     if (!confirm(`Delete your ${entry.identifiedName} sighting? This can't be undone.`))
@@ -137,7 +145,7 @@ export function LogView({
       <p className="rounded-xl border border-border bg-surface p-4 text-sm text-muted">
         {readOnly
           ? "Nothing logged here yet."
-          : "Nothing logged yet. Head to the Identify tab and photograph your first critter."}
+          : "Nothing logged yet. Photograph anything from the Identify tab — a moth, a beetle, a frog, a turtle — and it's identified and sorted here."}
       </p>
     );
 
@@ -147,12 +155,10 @@ export function LogView({
 
       {onList.length > 0 && (
         <section className="space-y-3">
-          {hasOff && (
-            <h2 className="text-sm font-semibold">
-              Butterflies &amp; moths{" "}
-              <span className="font-normal text-muted">· {onList.length}</span>
-            </h2>
-          )}
+          <h2 className="text-sm font-semibold">
+            Butterflies &amp; moths{" "}
+            <span className="font-normal text-muted">· {onList.length}</span>
+          </h2>
           <ul className="space-y-3">
             {onList.map((e) => (
               <LogCard
@@ -308,17 +314,15 @@ function LogCard({
                 placeLabel={entry.placeLabel}
                 observedAt={entry.observedAt}
               />
-              {entry.inatObservationId && (
-                <a
-                  href={`https://www.inaturalist.org/observations/${entry.inatObservationId}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="rounded-full bg-border px-2 py-0.5 text-[11px] font-medium text-muted"
-                >
-                  iNaturalist ↗
-                </a>
-              )}
+              <a
+                href={inatUrl(entry)}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="rounded-full bg-border px-2 py-0.5 text-[11px] font-medium text-muted"
+              >
+                iNaturalist ↗
+              </a>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChecklistView } from "@/components/ChecklistView";
+import { LifeListCard } from "@/components/LifeListCard";
 import { LogView } from "@/components/LogView";
 import { useUserCode } from "@/lib/useUserCode";
 import type { LogResponse } from "@/lib/types";
@@ -50,12 +51,13 @@ function Journal() {
     <div className="space-y-4">
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Journal</h1>
-        {stats && (
-          <p className="text-sm text-muted">
-            {stats.butterfliesSeen + stats.mothsSeen + stats.otherSpecies} species
-            logged · {data?.log.length ?? 0} sightings
-          </p>
-        )}
+        <p className="text-sm text-muted">
+          Every critter you&apos;ve identified — butterflies &amp; moths tracked
+          against a checklist, everything else logged and sorted by group.
+          {stats
+            ? ` ${stats.butterfliesSeen + stats.mothsSeen + stats.otherSpecies} species · ${data?.log.length ?? 0} sightings.`
+            : ""}
+        </p>
       </header>
 
       <div className="flex gap-2">
@@ -63,7 +65,7 @@ function Journal() {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold capitalize ${
+            className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold ${
               tab === t
                 ? "border-accent bg-accent text-accent-fg"
                 : "border-border bg-surface"
@@ -75,13 +77,16 @@ function Journal() {
       </div>
 
       {tab === "log" ? (
-        <LogView
-          code={code}
-          data={data}
-          status={status}
-          refetch={refetch}
-          focusSightingId={params.get("sighting")}
-        />
+        <>
+          {stats && <LifeListCard stats={stats} own />}
+          <LogView
+            code={code}
+            data={data}
+            status={status}
+            refetch={refetch}
+            focusSightingId={params.get("sighting")}
+          />
+        </>
       ) : (
         <ChecklistView code={code} />
       )}

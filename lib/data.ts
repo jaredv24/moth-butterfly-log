@@ -122,6 +122,8 @@ export type LogEntry = {
   lng: number | null;
   observedAt: string;
   inatObservationId: number | null;
+  /** iNaturalist taxon id — from the checklist for on-list species, else null */
+  inatTaxonId: number | null;
   otherGroup: string | null;
 };
 
@@ -129,9 +131,13 @@ export async function getUserLog(userId: string): Promise<LogEntry[]> {
   const rows = await db
     .select()
     .from(sightings)
+    .leftJoin(
+      checklistSpecies,
+      eq(sightings.speciesId, checklistSpecies.id),
+    )
     .where(eq(sightings.userId, userId))
     .orderBy(asc(sightings.observedAt));
-  return rows.map((r) => ({
+  return rows.map(({ sightings: r, checklist_species: sp }) => ({
     id: r.id,
     speciesId: r.speciesId,
     identifiedName: r.identifiedName,
@@ -144,6 +150,7 @@ export async function getUserLog(userId: string): Promise<LogEntry[]> {
     lng: r.lng,
     observedAt: r.observedAt.toISOString(),
     inatObservationId: r.inatObservationId,
+    inatTaxonId: sp?.inatTaxonId ?? r.inatTaxonId ?? null,
     otherGroup: r.otherGroup,
   }));
 }
