@@ -14,8 +14,10 @@ import {
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   code: text("code").notNull().unique(),
-  // display name for friends — not unique, not used for login
+  // profile name for friends — not unique, not used for login
   username: text("username"),
+  // optional short nickname, shown in parens after the profile name
+  nickname: text("nickname"),
   avatarUrl: text("avatar_url"),
   // shareable read-only follow code, minted on first use
   friendCode: text("friend_code").unique(),

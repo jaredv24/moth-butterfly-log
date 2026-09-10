@@ -32,3 +32,9 @@ export function cleanUsername(raw: string): string | null {
   const u = raw.trim().replace(/\s+/g, " ");
   return /^[\p{L}\p{N} ._-]{2,24}$/u.test(u) ? u : null;
 }
+
+/** Short nickname shown in parens after the profile name. 1–16 chars. */
+export function cleanNickname(raw: string): string | null {
+  const n = raw.trim().replace(/\s+/g, " ");
+  return /^[\p{L}\p{N} ._-]{1,16}$/u.test(n) ? n : null;
+}

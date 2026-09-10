@@ -3,6 +3,7 @@
 import QRCode from "qrcode";
 import { useEffect, useRef, useState } from "react";
 import { InatConnect } from "@/components/InatConnect";
+import { Lightbox } from "@/components/Lightbox";
 import { NotificationsCard } from "@/components/NotificationsCard";
 import { RevealCode } from "@/components/RevealCode";
 import { useUserCode } from "@/lib/useUserCode";
@@ -25,12 +26,24 @@ export default function SettingsPage() {
   // avatar
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarBusy, setAvatarBusy] = useState(false);
+  const [avatarZoom, setAvatarZoom] = useState(false);
   const avatarInput = useRef<HTMLInputElement>(null);
+
+  // server-stored nickname (null until loaded)
+  const [serverNick, setServerNick] = useState<string | null>(null);
+  const [nickDraft, setNickDraft] = useState<string | null>(null);
+  const [nickSaved, setNickSaved] = useState(false);
+  const [nickErr, setNickErr] = useState<string | null>(null);
+
   useEffect(() => {
     if (!code) return;
     fetch(`/api/user?code=${code}`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => d && setAvatarUrl(d.avatarUrl));
+      .then((d) => {
+        if (!d) return;
+        setAvatarUrl(d.avatarUrl);
+        setServerNick(d.nickname ?? null);
+      });
   }, [code]);
 
   async function uploadAvatar(e: React.ChangeEvent<HTMLInputElement>) {
@@ -115,6 +128,30 @@ export default function SettingsPage() {
     }
   }
 
+  const nick = nickDraft ?? serverNick ?? "";
+
+  async function saveNick(e: React.FormEvent) {
+    e.preventDefault();
+    if (!code) return;
+    setNickErr(null);
+    setNickSaved(false);
+    try {
+      const res = await fetch("/api/user", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, nickname: nick }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Couldn't save");
+      setServerNick(data.nickname ?? null);
+      setNickDraft(null);
+      setNickSaved(true);
+      setTimeout(() => setNickSaved(false), 2000);
+    } catch (e) {
+      setNickErr(e instanceof Error ? e.message : "Couldn't save");
+    }
+  }
+
   useEffect(() => {
     if (!code) return;
     const url = `${window.location.origin}/?code=${code}`;
@@ -159,12 +196,19 @@ export default function SettingsPage() {
 
       <section className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-5">
         {avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={avatarUrl}
-            alt="Your photo"
-            className="h-16 w-16 shrink-0 rounded-full object-cover"
-          />
+          <button
+            type="button"
+            onClick={() => setAvatarZoom(true)}
+            aria-label="View photo"
+            className="shrink-0"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={avatarUrl}
+              alt="Your photo"
+              className="h-16 w-16 rounded-full object-cover"
+            />
+          </button>
         ) : (
           <div className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-border text-2xl">
             👤
@@ -201,31 +245,74 @@ export default function SettingsPage() {
         />
       </section>
 
-      <section className="space-y-3 rounded-2xl border border-border bg-surface p-5">
-        <h2 className="text-sm font-semibold">Display name</h2>
-        <p className="text-xs text-muted">
-          What friends see when they follow you or you follow them. Doesn&apos;t
-          have to be unique.
-        </p>
-        <form onSubmit={saveName} className="flex gap-2">
-          <input
-            value={name}
-            onChange={(e) => setNameDraft(e.target.value)}
-            placeholder=""
-            maxLength={24}
-            className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
-          />
-          <button
-            type="submit"
-            disabled={name.trim() === (username ?? "")}
-            className="rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-50"
-          >
-            {nameSaved ? "Saved ✓" : "Save"}
-          </button>
-        </form>
-        {nameErr && (
-          <p className="text-sm text-red-600 dark:text-red-400">{nameErr}</p>
-        )}
+      <section className="space-y-4 rounded-2xl border border-border bg-surface p-5">
+        <div className="space-y-3">
+          <div>
+            <h2 className="text-sm font-semibold">Profile name</h2>
+            <p className="text-xs text-muted">
+              What friends see. Doesn&apos;t have to be unique.
+            </p>
+          </div>
+          <form onSubmit={saveName} className="flex gap-2">
+            <input
+              value={name}
+              onChange={(e) => setNameDraft(e.target.value)}
+              placeholder=""
+              maxLength={24}
+              className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+            />
+            <button
+              type="submit"
+              disabled={name.trim() === (username ?? "")}
+              className="rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-50"
+            >
+              {nameSaved ? "Saved ✓" : "Save"}
+            </button>
+          </form>
+          {nameErr && (
+            <p className="text-sm text-red-600 dark:text-red-400">{nameErr}</p>
+          )}
+        </div>
+
+        <div className="space-y-3 border-t border-border pt-4">
+          <div>
+            <h2 className="text-sm font-semibold">Nickname</h2>
+            <p className="text-xs text-muted">
+              Optional. Shown in parentheses after your profile name
+              {name.trim() ? (
+                <>
+                  {" "}
+                  — friends see{" "}
+                  <span className="font-medium text-foreground">
+                    {name.trim()}
+                    {nick.trim() ? ` (${nick.trim()})` : ""}
+                  </span>
+                </>
+              ) : (
+                "."
+              )}
+            </p>
+          </div>
+          <form onSubmit={saveNick} className="flex gap-2">
+            <input
+              value={nick}
+              onChange={(e) => setNickDraft(e.target.value)}
+              placeholder=""
+              maxLength={16}
+              className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+            />
+            <button
+              type="submit"
+              disabled={nick.trim() === (serverNick ?? "")}
+              className="rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-50"
+            >
+              {nickSaved ? "Saved ✓" : "Save"}
+            </button>
+          </form>
+          {nickErr && (
+            <p className="text-sm text-red-600 dark:text-red-400">{nickErr}</p>
+          )}
+        </div>
       </section>
 
       <NotificationsCard code={code} />
@@ -331,6 +418,14 @@ export default function SettingsPage() {
       </section>
 
       <InatConnect code={code} />
+
+      {avatarZoom && avatarUrl && (
+        <Lightbox
+          src={avatarUrl}
+          alt="Your photo"
+          onClose={() => setAvatarZoom(false)}
+        />
+      )}
     </div>
   );
 }

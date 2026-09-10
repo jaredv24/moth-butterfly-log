@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { messages, sightings, users } from "@/db/schema";
 import { isValidUserCode, normalizeUserCode } from "@/lib/code";
 import { areMutual, findUser } from "@/lib/data";
+import { displayName } from "@/lib/display-name";
 import type { ChatMessage, SharedSighting } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -90,7 +91,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     friend: {
       userId: friendId,
-      name: friend?.username ?? friend?.inatUsername ?? null,
+      name: displayName(friend?.username, friend?.nickname, friend?.inatUsername),
       avatarUrl: friend?.avatarUrl ?? null,
     },
     messages: out,

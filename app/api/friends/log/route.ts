@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { friendships, users } from "@/db/schema";
 import { isValidUserCode, normalizeUserCode } from "@/lib/code";
 import { findUser, getLogWithStats } from "@/lib/data";
+import { displayName } from "@/lib/display-name";
 
 export const runtime = "nodejs";
 
@@ -46,7 +47,9 @@ export async function GET(req: Request) {
     friend: {
       userId: friendUserId,
       name:
-        friend?.username ?? link.nickname ?? friend?.inatUsername ?? "Friend",
+        displayName(friend?.username, friend?.nickname, friend?.inatUsername) ??
+        link.nickname ??
+        "Friend",
       avatarUrl: friend?.avatarUrl ?? null,
       mutual: !!back,
     },

@@ -13,6 +13,7 @@ import {
   findUserByFriendCode,
   getOrCreateFriendCode,
 } from "@/lib/data";
+import { displayName } from "@/lib/display-name";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -47,9 +48,9 @@ export async function GET(req: Request) {
     db
       .select({
         userId: friendships.friendUserId,
-        nickname: friendships.nickname,
         createdAt: friendships.createdAt,
         username: users.username,
+        nickname: users.nickname,
         inatUsername: users.inatUsername,
         avatarUrl: users.avatarUrl,
         lastSeenAt: users.lastSeenAt,
@@ -63,6 +64,7 @@ export async function GET(req: Request) {
         userId: friendships.ownerUserId,
         createdAt: friendships.createdAt,
         username: users.username,
+        nickname: users.nickname,
         inatUsername: users.inatUsername,
         avatarUrl: users.avatarUrl,
         lastSeenAt: users.lastSeenAt,
@@ -79,15 +81,12 @@ export async function GET(req: Request) {
     ...new Set([...iFollow, ...followMe]),
   ]);
 
-  const displayName = (username: string | null, inat: string | null, nick?: string | null) =>
-    username ?? nick ?? inat ?? null;
-
   return NextResponse.json({
     friendCode,
     username: me.username ?? null,
     following: followingRows.map((r) => ({
       userId: r.userId,
-      name: displayName(r.username, r.inatUsername, r.nickname),
+      name: displayName(r.username, r.nickname, r.inatUsername),
       avatarUrl: r.avatarUrl,
       addedAt: r.createdAt.toISOString(),
       sightingsCount: act.get(r.userId)?.sightings ?? 0,
@@ -97,7 +96,7 @@ export async function GET(req: Request) {
     })),
     followers: followerRows.map((r) => ({
       userId: r.userId,
-      name: displayName(r.username, r.inatUsername),
+      name: displayName(r.username, r.nickname, r.inatUsername),
       avatarUrl: r.avatarUrl,
       followedAt: r.createdAt.toISOString(),
       speciesCount: act.get(r.userId)?.species ?? 0,

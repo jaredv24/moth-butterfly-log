@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { messages, sightings, users } from "@/db/schema";
 import { isValidUserCode, normalizeUserCode } from "@/lib/code";
 import { areMutual, findUser, listMutualIds } from "@/lib/data";
+import { displayName } from "@/lib/display-name";
 import { pushToUser } from "@/lib/push-send";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import type { ChatMessage, SharedSighting } from "@/lib/types";
@@ -14,10 +15,6 @@ export const runtime = "nodejs";
 async function requireUser(raw: string) {
   const c = normalizeUserCode(raw);
   return isValidUserCode(c) ? findUser(c) : null;
-}
-
-function displayName(username: string | null, inat: string | null) {
-  return username ?? inat ?? null;
 }
 
 /** GET /api/messages?code= — thread list with unread counts. */
@@ -35,6 +32,7 @@ export async function GET(req: Request) {
       .select({
         id: users.id,
         username: users.username,
+        nickname: users.nickname,
         inatUsername: users.inatUsername,
         avatarUrl: users.avatarUrl,
       })
@@ -91,7 +89,7 @@ export async function GET(req: Request) {
       const last = lastByOther.get(p.id);
       return {
         userId: p.id,
-        name: displayName(p.username, p.inatUsername),
+        name: displayName(p.username, p.nickname, p.inatUsername),
         avatarUrl: p.avatarUrl,
         lastMessage: last
           ? {
@@ -201,7 +199,7 @@ export async function POST(req: Request) {
           and(eq(messages.recipientUserId, to), isNull(messages.readAt)),
         );
       const senderName =
-        me.username?.trim() || me.inatUsername || "A friend";
+        displayName(me.username, me.nickname, me.inatUsername) || "A friend";
       const preview = body ? body.slice(0, 140) : "📷 Shared a sighting";
       // iOS forces " from <app name>" onto the notification title, so keep the
       // title empty and put everything meaningful in the body — one clean line.

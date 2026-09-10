@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import {
+  cleanNickname,
   cleanUsername,
   isValidUserCode,
   normalizeUserCode,
@@ -46,6 +47,7 @@ export async function GET(req: Request) {
   if (!user) return NextResponse.json({ error: "unknown code" }, { status: 404 });
   return NextResponse.json({
     username: user.username ?? null,
+    nickname: user.nickname ?? null,
     avatarUrl: user.avatarUrl ?? null,
     hasPassword: !!user.passwordHash,
   });
@@ -102,6 +104,7 @@ export async function POST(req: Request) {
       code: user.code,
       created: user.created,
       username: full?.username ?? null,
+      nickname: full?.nickname ?? null,
       avatarUrl: full?.avatarUrl ?? null,
       hasPassword: !!full?.passwordHash,
     }),
@@ -115,6 +118,7 @@ export async function PATCH(req: Request) {
     .object({
       code: z.string(),
       username: z.string().optional(),
+      nickname: z.string().optional(),
       password: z.string().optional(), // "" removes it
       currentPassword: z.string().optional(),
     })
@@ -141,6 +145,18 @@ export async function PATCH(req: Request) {
       );
     }
     set.username = username;
+  }
+
+  if (parsed.data.nickname !== undefined) {
+    const raw = parsed.data.nickname.trim();
+    const nickname = raw === "" ? null : cleanNickname(raw);
+    if (raw !== "" && !nickname) {
+      return NextResponse.json(
+        { error: "Nickname: 1–16 characters: letters, numbers, spaces, . _ -" },
+        { status: 400 },
+      );
+    }
+    set.nickname = nickname;
   }
 
   if (parsed.data.password !== undefined) {
@@ -171,6 +187,7 @@ export async function PATCH(req: Request) {
   return withDeviceCookie(
     NextResponse.json({
       username: set.username !== undefined ? set.username : (user.username ?? null),
+      nickname: set.nickname !== undefined ? set.nickname : (user.nickname ?? null),
       hasPassword:
         set.passwordHash !== undefined
           ? set.passwordHash !== null

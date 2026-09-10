@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { LifeListCard } from "@/components/LifeListCard";
+import { Lightbox } from "@/components/Lightbox";
 import { LogView } from "@/components/LogView";
 import { MapView } from "@/components/MapView";
 import { useUserCode } from "@/lib/useUserCode";
@@ -36,6 +37,7 @@ function FriendLog() {
     "loading",
   );
   const [tab, setTab] = useState<Tab>("log");
+  const [avatarZoom, setAvatarZoom] = useState(false);
 
   const refetch = useCallback(() => {
     if (!code) return;
@@ -78,12 +80,19 @@ function FriendLog() {
       <BackLink />
       <header className="flex items-center gap-3">
         {data?.friend.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={data.friend.avatarUrl}
-            alt=""
-            className="h-12 w-12 shrink-0 rounded-full object-cover"
-          />
+          <button
+            type="button"
+            onClick={() => setAvatarZoom(true)}
+            aria-label="View photo"
+            className="shrink-0"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={data.friend.avatarUrl}
+              alt=""
+              className="h-12 w-12 rounded-full object-cover"
+            />
+          </button>
         ) : (
           <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-border">
             👤
@@ -140,6 +149,14 @@ function FriendLog() {
         <MapView
           log={data?.log ?? []}
           emptyHint={`${name} hasn't logged anything with a location.`}
+        />
+      )}
+
+      {avatarZoom && data?.friend.avatarUrl && (
+        <Lightbox
+          src={data.friend.avatarUrl}
+          alt={name}
+          onClose={() => setAvatarZoom(false)}
         />
       )}
     </div>
