@@ -56,6 +56,7 @@ export type LogItem = {
   lat: number | null;
   lng: number | null;
   observedAt: string;
+  createdAt: string;
   inatObservationId: number | null;
   inatTaxonId: number | null;
   refPhotoUrl: string | null;

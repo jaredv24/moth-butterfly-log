@@ -121,6 +121,7 @@ export type LogEntry = {
   lat: number | null;
   lng: number | null;
   observedAt: string;
+  createdAt: string;
   inatObservationId: number | null;
   /** iNaturalist taxon id — from the checklist for on-list species, else null */
   inatTaxonId: number | null;
@@ -151,6 +152,7 @@ export async function getUserLog(userId: string): Promise<LogEntry[]> {
     lat: r.lat,
     lng: r.lng,
     observedAt: r.observedAt.toISOString(),
+    createdAt: r.createdAt.toISOString(),
     inatObservationId: r.inatObservationId,
     inatTaxonId: sp?.inatTaxonId ?? r.inatTaxonId ?? null,
     refPhotoUrl: sp?.thumbUrl ?? r.refPhotoUrl ?? null,

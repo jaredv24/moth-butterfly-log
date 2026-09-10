@@ -43,6 +43,7 @@ export function LogView({
   const [sheetFor, setSheetFor] = useState<string | null>(null);
   const [zoom, setZoom] = useState<{ src: string; alt: string } | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"observedAt" | "createdAt">("observedAt");
 
   // a shared chat link (?sighting=<id>) opens straight to that one sighting
   const [focusDismissed, setFocusDismissed] = useState(false);
@@ -68,9 +69,9 @@ export function LogView({
   const entries = useMemo(
     () =>
       [...(data?.log ?? [])].sort((a, b) =>
-        b.observedAt.localeCompare(a.observedAt),
+        b[sortBy].localeCompare(a[sortBy]),
       ),
-    [data],
+    [data, sortBy],
   );
   const onList = entries.filter((e) => e.speciesId != null);
 
@@ -152,6 +153,23 @@ export function LogView({
   return (
     <div className="space-y-4">
       {err && <p className="text-sm text-red-600 dark:text-red-400">{err}</p>}
+
+      <div className="flex items-center justify-end gap-2 text-sm">
+        <label htmlFor="log-sort" className="text-muted">
+          Sort by
+        </label>
+        <select
+          id="log-sort"
+          value={sortBy}
+          onChange={(e) =>
+            setSortBy(e.target.value as "observedAt" | "createdAt")
+          }
+          className="rounded-lg border border-border bg-surface px-2 py-1 text-sm"
+        >
+          <option value="observedAt">Date seen</option>
+          <option value="createdAt">Date added</option>
+        </select>
+      </div>
 
       {onList.length > 0 && (
         <section className="space-y-3">
