@@ -48,8 +48,8 @@ async function lookup(name: string): Promise<TaxonInfo> {
     const info: TaxonInfo = {
       inatTaxonId: match.id,
       thumbUrl:
-        match.default_photo?.square_url ??
         match.default_photo?.medium_url ??
+        match.default_photo?.square_url ??
         null,
       commonName: match.preferred_common_name?.trim() || null,
     };

@@ -1,4 +1,4 @@
-import type { IdCandidate, IdProvider } from "./types";
+import type { IdProvider, IdResult } from "./types";
 
 type BioclipCandidate = {
   scientificName: string;
@@ -19,7 +19,7 @@ type BioclipCandidate = {
 export class BioclipProvider implements IdProvider {
   readonly name = "bioclip";
 
-  async identify(image: Buffer): Promise<IdCandidate[]> {
+  async identify(image: Buffer): Promise<IdResult> {
     const endpoint = process.env.BIOCLIP_ENDPOINT;
     const token = process.env.BIOCLIP_TOKEN;
     if (!endpoint || !token) {
@@ -43,14 +43,22 @@ export class BioclipProvider implements IdProvider {
       throw new Error(`BioCLIP service failed: ${res.status} ${await res.text()}`);
     }
 
-    const json = (await res.json()) as { candidates?: BioclipCandidate[] };
-    return (json.candidates ?? []).map((c) => ({
-      name: c.commonName ?? c.scientificName,
-      scientificName: c.scientificName,
-      confidence: c.score,
-      order: c.order,
-      taxonClass: c.class,
-      imageUrl: null,
-    }));
+    const json = (await res.json()) as {
+      candidates?: BioclipCandidate[];
+      croppedImage?: string | null;
+    };
+    return {
+      candidates: (json.candidates ?? []).map((c) => ({
+        name: c.commonName ?? c.scientificName,
+        scientificName: c.scientificName,
+        confidence: c.score,
+        order: c.order,
+        taxonClass: c.class,
+        imageUrl: null,
+      })),
+      croppedImage: json.croppedImage
+        ? Buffer.from(json.croppedImage, "base64")
+        : null,
+    };
   }
 }

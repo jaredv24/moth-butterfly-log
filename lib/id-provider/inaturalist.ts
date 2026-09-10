@@ -1,4 +1,4 @@
-import type { IdCandidate, IdOptions, IdProvider } from "./types";
+import type { IdOptions, IdProvider, IdResult } from "./types";
 
 const OAUTH_TOKEN_URL = "https://www.inaturalist.org/oauth/token";
 const API_TOKEN_URL = "https://www.inaturalist.org/users/api_token";
@@ -60,7 +60,7 @@ type ScoreResult = {
 export class INaturalistProvider implements IdProvider {
   readonly name = "inaturalist";
 
-  async identify(image: Buffer, opts: IdOptions): Promise<IdCandidate[]> {
+  async identify(image: Buffer, opts: IdOptions): Promise<IdResult> {
     const jwt = await getJwt();
 
     const form = new FormData();
@@ -87,14 +87,19 @@ export class INaturalistProvider implements IdProvider {
     }
 
     const json = (await res.json()) as { results?: ScoreResult[] };
-    return (json.results ?? [])
-      .filter((r) => r.taxon && r.taxon.rank === "species")
-      .slice(0, 5)
-      .map((r) => ({
-        name: r.taxon!.preferred_common_name ?? r.taxon!.name,
-        scientificName: r.taxon!.name,
-        inatTaxonId: r.taxon!.id,
-        confidence: r.combined_score != null ? r.combined_score / 100 : (r.vision_score ?? 0),
-      }));
+    return {
+      candidates: (json.results ?? [])
+        .filter((r) => r.taxon && r.taxon.rank === "species")
+        .slice(0, 5)
+        .map((r) => ({
+          name: r.taxon!.preferred_common_name ?? r.taxon!.name,
+          scientificName: r.taxon!.name,
+          inatTaxonId: r.taxon!.id,
+          confidence:
+            r.combined_score != null
+              ? r.combined_score / 100
+              : (r.vision_score ?? 0),
+        })),
+    };
   }
 }

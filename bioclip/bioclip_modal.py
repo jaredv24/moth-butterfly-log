@@ -171,8 +171,16 @@ def web():
         crop = crop_to_subject(img)
         preds = classifier.predict([crop], Rank.SPECIES, k=k)
 
+        cropped = crop.size != img.size
+        crop_b64 = None
+        if cropped:
+            buf = io.BytesIO()
+            crop.save(buf, format="JPEG", quality=88)
+            crop_b64 = base64.b64encode(buf.getvalue()).decode()
+
         return {
-            "cropped": crop.size != img.size,
+            "cropped": cropped,
+            "croppedImage": crop_b64,
             "candidates": [
                 {
                     "scientificName": p.get("species") or "",

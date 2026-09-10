@@ -274,8 +274,6 @@ function LogCard({
   onChange: () => void;
   onDelete: () => void;
 }) {
-  const ref = entry.refPhotoUrl;
-  const size = ref ? "h-16 w-16" : "h-20 w-20";
   return (
     <li
       className={`rounded-xl border bg-surface p-3 ${
@@ -283,51 +281,20 @@ function LogCard({
       }`}
     >
       <div className="flex gap-3">
-        <div className="flex shrink-0 gap-1.5">
-          <figure>
-            <button
-              type="button"
-              onClick={() =>
-                onZoom({ src: entry.photoUrl, alt: entry.identifiedName })
-              }
-              aria-label="Your photo"
-            >
-              <Thumb
-                src={entry.photoUrl}
-                alt={entry.identifiedName}
-                className={`${size} rounded-lg bg-border object-cover`}
-              />
-            </button>
-            {ref && (
-              <figcaption className="mt-0.5 text-center text-[9px] text-muted">
-                yours
-              </figcaption>
-            )}
-          </figure>
-          {ref && (
-            <figure>
-              <button
-                type="button"
-                onClick={() =>
-                  onZoom({
-                    src: ref,
-                    alt: `${entry.identifiedName} — reference photo`,
-                  })
-                }
-                aria-label="Reference photo"
-              >
-                <Thumb
-                  src={ref}
-                  alt=""
-                  className={`${size} rounded-lg bg-border object-cover`}
-                />
-              </button>
-              <figcaption className="mt-0.5 text-center text-[9px] text-muted">
-                iNat
-              </figcaption>
-            </figure>
-          )}
-        </div>
+        <button
+          type="button"
+          onClick={() =>
+            onZoom({ src: entry.photoUrl, alt: entry.identifiedName })
+          }
+          aria-label="View photo"
+          className="shrink-0"
+        >
+          <Thumb
+            src={entry.photoUrl}
+            alt={entry.identifiedName}
+            className="h-20 w-20 rounded-lg bg-border object-cover"
+          />
+        </button>
         <div
           role="button"
           tabIndex={0}

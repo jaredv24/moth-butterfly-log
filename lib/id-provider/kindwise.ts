@@ -1,4 +1,4 @@
-import type { IdCandidate, IdOptions, IdProvider } from "./types";
+import type { IdOptions, IdProvider, IdResult } from "./types";
 
 const ENDPOINT = "https://insect.kindwise.com/api/v1/identification";
 
@@ -29,7 +29,7 @@ type KindwiseResponse = {
 export class KindwiseProvider implements IdProvider {
   readonly name = "kindwise";
 
-  async identify(image: Buffer, opts: IdOptions): Promise<IdCandidate[]> {
+  async identify(image: Buffer, opts: IdOptions): Promise<IdResult> {
     const apiKey = process.env.KINDWISE_API_KEY;
     if (!apiKey) throw new Error("KINDWISE_API_KEY is required for ID_PROVIDER=kindwise");
 
@@ -62,15 +62,20 @@ export class KindwiseProvider implements IdProvider {
     const json = (await res.json()) as KindwiseResponse;
     const suggestions = json.result?.classification?.suggestions ?? [];
 
-    return suggestions.slice(0, 5).map((s) => {
-      const common = s.details?.common_names?.[0];
-      return {
-        name: common ?? s.name,
-        scientificName: s.name,
-        confidence: s.probability,
-        order: s.details?.taxonomy?.order ?? null,
-        imageUrl: s.similar_images?.[0]?.url_small ?? s.similar_images?.[0]?.url ?? null,
-      };
-    });
+    return {
+      candidates: suggestions.slice(0, 5).map((s) => {
+        const common = s.details?.common_names?.[0];
+        return {
+          name: common ?? s.name,
+          scientificName: s.name,
+          confidence: s.probability,
+          order: s.details?.taxonomy?.order ?? null,
+          imageUrl:
+            s.similar_images?.[0]?.url_small ??
+            s.similar_images?.[0]?.url ??
+            null,
+        };
+      }),
+    };
   }
 }

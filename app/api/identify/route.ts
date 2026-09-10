@@ -48,7 +48,7 @@ export async function POST(req: Request) {
 
   try {
     const provider = getIdProvider();
-    const raw = await provider.identify(bytes, {
+    const { candidates: raw, croppedImage } = await provider.identify(bytes, {
       lat,
       lng,
       observedOn: observedDate.toISOString().slice(0, 10),
@@ -173,6 +173,9 @@ export async function POST(req: Request) {
       candidates,
       placeLabel,
       observedAt: observedDate.toISOString(),
+      croppedPhoto: croppedImage
+        ? `data:image/jpeg;base64,${croppedImage.toString("base64")}`
+        : null,
     });
   } catch (err) {
     console.error("identify failed:", err);

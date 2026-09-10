@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Lightbox } from "@/components/Lightbox";
 import { ShareSightingSheet } from "@/components/ShareSightingSheet";
 import { Thumb } from "@/components/Thumb";
+import { inatPhoto } from "@/lib/inat-photo";
 import type { LogItem } from "@/lib/types";
 
 function fmt(iso: string) {
@@ -61,8 +62,8 @@ export function SightingSheet({
         <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-border" />
 
         <div className="flex items-start gap-3">
-          <div className="flex shrink-0 gap-1.5">
-            <figure>
+          <div className="flex shrink-0 flex-col items-center gap-2">
+            <figure className="text-center">
               <button
                 type="button"
                 onClick={() =>
@@ -72,39 +73,41 @@ export function SightingSheet({
                 <Thumb
                   src={head.photoUrl}
                   alt={head.identifiedName}
-                  className="h-20 w-20 rounded-xl bg-border object-cover"
+                  className="h-24 w-24 rounded-xl bg-border object-cover"
                 />
               </button>
               {head.refPhotoUrl && (
-                <figcaption className="mt-0.5 text-center text-[10px] text-muted">
-                  yours
+                <figcaption className="mt-0.5 text-[10px] text-muted">
+                  Sighting
                 </figcaption>
               )}
             </figure>
             {head.refPhotoUrl && (
-              <figure>
+              <figure className="text-center">
                 <button
                   type="button"
                   onClick={() =>
                     setZoom({
-                      src: head.refPhotoUrl!,
-                      alt: `${head.identifiedName} — reference photo`,
+                      src:
+                        inatPhoto(head.refPhotoUrl, "large") ??
+                        head.refPhotoUrl!,
+                      alt: `${head.identifiedName} — reference`,
                     })
                   }
                 >
                   <Thumb
                     src={head.refPhotoUrl}
                     alt=""
-                    className="h-20 w-20 rounded-xl bg-border object-cover"
+                    className="h-12 w-12 rounded-lg bg-border object-cover"
                   />
                 </button>
-                <figcaption className="mt-0.5 text-center text-[10px] text-muted">
+                <figcaption className="mt-0.5 text-[10px] text-muted">
                   iNaturalist
                 </figcaption>
               </figure>
             )}
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h2 className="text-lg font-bold">{head.identifiedName}</h2>
             {head.identifiedName.toLowerCase() !==
               head.identifiedScientific.toLowerCase() && (

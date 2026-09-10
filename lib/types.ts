@@ -40,6 +40,8 @@ export type IdentifyResponse = {
   candidates: Candidate[];
   placeLabel: string | null;
   observedAt: string;
+  /** subject-cropped photo (data URL) the identifier analysed, if it cropped */
+  croppedPhoto: string | null;
 };
 
 export type LogItem = {

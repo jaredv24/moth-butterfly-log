@@ -20,7 +20,13 @@ export type IdOptions = {
   observedOn?: string;
 };
 
+export type IdResult = {
+  candidates: IdCandidate[];
+  /** the subject-cropped image the provider actually analysed, if any */
+  croppedImage?: Buffer | null;
+};
+
 export interface IdProvider {
   readonly name: string;
-  identify(image: Buffer, opts: IdOptions): Promise<IdCandidate[]>;
+  identify(image: Buffer, opts: IdOptions): Promise<IdResult>;
 }

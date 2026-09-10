@@ -32,6 +32,7 @@ export default function IdentifyPage() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [cropped, setCropped] = useState(false);
   const [candidates, setCandidates] = useState<Candidate[] | null>(null);
   const [picking, setPicking] = useState(false);
   const coordsRef = useRef<Coords>(null);
@@ -84,6 +85,7 @@ export default function IdentifyPage() {
     setPhase("idle");
     setError(null);
     setPhotoPreview(null);
+    setCropped(false);
     setCandidates(null);
     setPicking(false);
     setDone(null);
@@ -168,6 +170,17 @@ export default function IdentifyPage() {
       const d = data as IdentifyResponse;
       setCandidates(d.candidates);
       setIdMeta({ placeLabel: d.placeLabel, observedAt: d.observedAt });
+      // use the subject-cropped image the identifier analysed as the sighting photo
+      if (d.croppedPhoto) {
+        try {
+          const cropBlob = await (await fetch(d.croppedPhoto)).blob();
+          photoRef.current = cropBlob;
+          setPhotoPreview(URL.createObjectURL(cropBlob));
+          setCropped(true);
+        } catch {
+          /* keep the original */
+        }
+      }
       setPhase("results");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -329,8 +342,9 @@ export default function IdentifyPage() {
         photoPreview && (
           <div className="overflow-hidden rounded-2xl border border-border bg-surface">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photoPreview} alt="Your photo" className="max-h-72 w-full object-cover" />
+            <img src={photoPreview} alt="Your photo" className="max-h-72 w-full object-contain" />
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 text-xs text-muted">
+              {cropped && <span>✂️ Cropped to subject</span>}
               {geoState === "asking" && !idMeta && <span>📍 Getting location…</span>}
               {idMeta?.placeLabel && <span>📍 {idMeta.placeLabel}</span>}
               {idMeta && !idMeta.placeLabel && <span>📍 No location</span>}

@@ -12,18 +12,22 @@ describe("MockProvider", () => {
   });
 
   it("returns up to 3 candidates with descending confidence", async () => {
-    const res = await provider.identify(Buffer.from("another payload"));
-    expect(res.length).toBeGreaterThan(0);
-    expect(res.length).toBeLessThanOrEqual(3);
-    for (let i = 1; i < res.length; i++) {
-      expect(res[i].confidence).toBeLessThanOrEqual(res[i - 1].confidence);
+    const { candidates } = await provider.identify(Buffer.from("another payload"));
+    expect(candidates.length).toBeGreaterThan(0);
+    expect(candidates.length).toBeLessThanOrEqual(3);
+    for (let i = 1; i < candidates.length; i++) {
+      expect(candidates[i].confidence).toBeLessThanOrEqual(
+        candidates[i - 1].confidence,
+      );
     }
-    expect(res[0].scientificName).toBeTruthy();
+    expect(candidates[0].scientificName).toBeTruthy();
   });
 
   it("differs for different images", async () => {
-    const a = await provider.identify(Buffer.from("image-one"));
-    const b = await provider.identify(Buffer.from("image-two-totally-different"));
+    const { candidates: a } = await provider.identify(Buffer.from("image-one"));
+    const { candidates: b } = await provider.identify(
+      Buffer.from("image-two-totally-different"),
+    );
     expect(a[0].scientificName).not.toBe(b[0].scientificName);
   });
 });

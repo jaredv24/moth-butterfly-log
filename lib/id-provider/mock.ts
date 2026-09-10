@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import checklist from "@/data/checklist.json";
-import type { IdCandidate, IdProvider } from "./types";
+import type { IdCandidate, IdProvider, IdResult } from "./types";
 
 type Row = (typeof checklist.species)[number];
 const SPECIES = checklist.species as Row[];
@@ -40,7 +40,7 @@ const OFF_LIST_BUGS: IdCandidate[] = [
 export class MockProvider implements IdProvider {
   readonly name = "mock";
 
-  async identify(image: Buffer): Promise<IdCandidate[]> {
+  async identify(image: Buffer): Promise<IdResult> {
     const hash = createHash("sha256").update(image).digest();
     const pick = (offset: number) =>
       SPECIES[hash.readUInt32BE(offset % 28) % SPECIES.length];
@@ -63,8 +63,8 @@ export class MockProvider implements IdProvider {
 
     // ~1 in 4 images: it's actually an off-checklist bug
     if (hash[1] % 4 === 0) {
-      return [OFF_LIST_BUGS[hash[2] % OFF_LIST_BUGS.length]];
+      return { candidates: [OFF_LIST_BUGS[hash[2] % OFF_LIST_BUGS.length]] };
     }
-    return candidates;
+    return { candidates };
   }
 }

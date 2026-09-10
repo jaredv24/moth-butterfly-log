@@ -4,7 +4,7 @@ import { KindwiseProvider } from "./kindwise";
 import { MockProvider } from "./mock";
 import type { IdProvider } from "./types";
 
-export type { IdCandidate, IdOptions, IdProvider } from "./types";
+export type { IdCandidate, IdOptions, IdProvider, IdResult } from "./types";
 
 let instance: IdProvider | null = null;
 
