@@ -74,6 +74,11 @@ export default function IdentifyPage() {
     };
   }, [code]);
 
+  // wake the ID service now so it's warm by the time a photo is ready
+  useEffect(() => {
+    fetch("/api/identify/warm").catch(() => {});
+  }, []);
+
   function reset() {
     setPhase("idle");
     setError(null);
@@ -239,7 +244,7 @@ export default function IdentifyPage() {
       <header className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight">Moth &amp; Butterfly Log</h1>
         <p className="text-sm text-muted">
-          Photograph one, identify it, tick it off your North American life list.
+          Photograph a critter, identify it, tick it off your life list.
         </p>
       </header>
 
@@ -280,23 +285,33 @@ export default function IdentifyPage() {
           )}
 
           {logSummary && logSummary.stats.otherSpecies > 0 && (
-            <section className="space-y-2 rounded-2xl border border-border bg-surface p-4">
-              <div className="flex items-baseline justify-between">
-                <h2 className="text-sm font-semibold">Other bugs</h2>
-                <span className="text-xs text-muted">
-                  {logSummary.stats.otherSpecies} species
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {logSummary.stats.otherGroups.map((g) => (
-                  <span
-                    key={g.group}
-                    className="rounded-full bg-border px-2 py-0.5 text-[11px] font-medium"
-                  >
-                    {g.group} · {g.species}
-                  </span>
-                ))}
-              </div>
+            <section className="space-y-3 rounded-2xl border border-border bg-surface p-4">
+              {(
+                [
+                  ["Other insects & arthropods", "arthropod"],
+                  ["Other critters", "critter"],
+                ] as const
+              ).map(([label, kind]) => {
+                const groups = logSummary.stats.otherGroups.filter(
+                  (g) => g.kind === kind,
+                );
+                if (groups.length === 0) return null;
+                return (
+                  <div key={kind} className="space-y-1.5">
+                    <h2 className="text-sm font-semibold">{label}</h2>
+                    <div className="flex flex-wrap gap-1.5">
+                      {groups.map((g) => (
+                        <span
+                          key={g.group}
+                          className="rounded-full bg-border px-2 py-0.5 text-[11px] font-medium"
+                        >
+                          {g.group} · {g.species}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </section>
           )}
 
@@ -356,7 +371,7 @@ export default function IdentifyPage() {
                   <span>{Math.round(c.confidence * 100)}% match</span>
                   {c.match.speciesId == null && c.otherGroup && (
                     <span className="rounded bg-border px-1.5 py-0.5">
-                      {c.otherGroup} · goes in your bug list
+                      {c.otherGroup}
                     </span>
                   )}
                   {c.match.speciesId == null && !c.otherGroup && (
@@ -405,7 +420,7 @@ export default function IdentifyPage() {
               : done.checklisted
                 ? "Already on your life list — sighting logged."
                 : done.otherGroup
-                  ? `Added to your bug list under ${done.otherGroup}.`
+                  ? `Logged under ${done.otherGroup}.`
                   : "Logged under “other sightings.”"}
           </p>
           <div className="flex justify-center">

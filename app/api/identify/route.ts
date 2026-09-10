@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       observedOn: observedDate.toISOString().slice(0, 10),
     });
 
-    let candidates = raw.map((c) => {
+    const mapped = raw.map((c) => {
       const m = matchCandidate(c, checklist);
       const offList = m.species == null;
       return {
@@ -61,8 +61,8 @@ export async function POST(req: Request) {
         scientificName: c.scientificName,
         inatTaxonId: m.species?.inatTaxonId ?? c.inatTaxonId ?? null,
         confidence: c.confidence,
-        // for off-checklist bugs: the provider's photo + a friendly group label
-        otherGroup: offList ? bugGroupFor(c.order) : null,
+        // for off-checklist critters: the provider's photo + a friendly group label
+        otherGroup: offList ? bugGroupFor(c.order, c.taxonClass) : null,
         match: {
           speciesId: m.species?.id ?? null,
           matchLevel: m.matchLevel,
@@ -75,6 +75,33 @@ export async function POST(req: Request) {
         plausibility: null as { verdict: string; note: string } | null,
       };
     });
+
+    // Collapse candidates that resolve to the same species (e.g. several
+    // same-genus guesses that all genus-match one checklist entry), pooling
+    // their confidence, then drop the long tail of near-zero guesses.
+    type Cand = (typeof mapped)[number];
+    const byIdentity = new Map<string, Cand>();
+    for (const c of mapped) {
+      const key =
+        c.match.speciesId != null
+          ? `sp:${c.match.speciesId}`
+          : `sci:${c.scientificName.toLowerCase()}`;
+      const existing = byIdentity.get(key);
+      if (existing) {
+        existing.confidence = Math.min(0.99, existing.confidence + c.confidence);
+      } else {
+        byIdentity.set(key, { ...c });
+      }
+    }
+    const pooled = [...byIdentity.values()].sort(
+      (a, b) => b.confidence - a.confidence,
+    );
+    const top = pooled[0]?.confidence ?? 0;
+    let candidates = pooled
+      .filter(
+        (c, i) => i === 0 || (c.confidence >= 0.04 && c.confidence >= top * 0.15),
+      )
+      .slice(0, 5);
 
     // Location-aware sanity check: how often is each candidate actually
     // recorded near here, this month? Annotates + re-ranks gently. Fails soft.

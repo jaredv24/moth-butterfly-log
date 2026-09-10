@@ -1,6 +1,7 @@
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { checklistSpecies, friendships, sightings, users } from "@/db/schema";
+import { type CritterKind, groupKind } from "./bug-groups";
 import { generateFriendCode, generateUserCode } from "./code";
 
 export async function getOrCreateUser(
@@ -158,8 +159,9 @@ export type LogStats = {
   totalMoths: number;
   butterfliesSeen: number;
   mothsSeen: number;
+  /** total off-checklist species (arthropods + critters) */
   otherSpecies: number;
-  otherGroups: { group: string; species: number }[];
+  otherGroups: { group: string; species: number; kind: CritterKind }[];
 };
 
 /** The full log + life-list stats for a user — shared by the log & friend APIs. */
@@ -192,9 +194,17 @@ export async function getLogWithStats(
     const g = e.otherGroup ?? "Other bugs";
     (otherByGroup[g] ??= new Set()).add(e.identifiedScientific.toLowerCase());
   }
+  const kindRank = { arthropod: 0, critter: 1 };
   const otherGroups = Object.entries(otherByGroup)
-    .map(([group, set]) => ({ group, species: set.size }))
-    .sort((a, b) => b.species - a.species);
+    .map(([group, set]) => ({
+      group,
+      species: set.size,
+      kind: groupKind(group),
+    }))
+    .sort(
+      (a, b) =>
+        kindRank[a.kind] - kindRank[b.kind] || b.species - a.species,
+    );
   const otherSpecies = otherGroups.reduce((n, g) => n + g.species, 0);
 
   return {

@@ -50,14 +50,14 @@ function verdictFor(region: number | null, season: number | null, monthName: str
     return {
       verdict: "out-of-area",
       note: `No records within ${RADIUS_KM} km — double-check`,
-      weight: 0.55,
+      weight: 0.3,
     };
   }
   if (season != null && season === 0) {
     return {
       verdict: "unusual",
       note: `Recorded in this area, but rarely around ${monthName}`,
-      weight: 0.75,
+      weight: 0.65,
     };
   }
   if (season != null && season < 5) {

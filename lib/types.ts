@@ -110,6 +110,8 @@ export type ThreadResponse = {
   messages: ChatMessage[];
 };
 
+export type CritterKind = "arthropod" | "critter";
+
 export type LogResponse = {
   log: LogItem[];
   stats: {
@@ -118,6 +120,6 @@ export type LogResponse = {
     butterfliesSeen: number;
     mothsSeen: number;
     otherSpecies: number;
-    otherGroups: { group: string; species: number }[];
+    otherGroups: { group: string; species: number; kind: CritterKind }[];
   };
 };

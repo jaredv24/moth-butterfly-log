@@ -7,6 +7,7 @@ import { SightingSheet } from "@/components/SightingSheet";
 import { SpeciesName } from "@/components/SpeciesName";
 import { SpeciesPicker } from "@/components/SpeciesPicker";
 import { Thumb } from "@/components/Thumb";
+import { groupKind } from "@/lib/bug-groups";
 import type { ChecklistItem, LogItem, LogResponse } from "@/lib/types";
 
 export function LogView({
@@ -63,17 +64,21 @@ export function LogView({
   );
   const onList = entries.filter((e) => e.speciesId != null);
 
-  const offGroups = useMemo(() => {
+  const offTiers = useMemo(() => {
     const map = new Map<string, LogItem[]>();
     for (const e of entries) {
       if (e.speciesId != null) continue;
-      const g = e.otherGroup ?? "Other bugs";
-      const arr = map.get(g) ?? [];
-      arr.push(e);
-      map.set(g, arr);
+      const g = e.otherGroup ?? "Other critters";
+      (map.get(g) ?? map.set(g, []).get(g)!).push(e);
     }
-    return [...map.entries()].sort((a, b) => b[1].length - a[1].length);
+    const groups = [...map.entries()].sort((a, b) => b[1].length - a[1].length);
+    return {
+      arthropod: groups.filter(([g]) => groupKind(g) === "arthropod"),
+      critter: groups.filter(([g]) => groupKind(g) === "critter"),
+    };
   }, [entries]);
+
+  const hasOff = offTiers.arthropod.length > 0 || offTiers.critter.length > 0;
 
   async function del(entry: LogItem) {
     if (!code) return;
@@ -132,7 +137,7 @@ export function LogView({
       <p className="rounded-xl border border-border bg-surface p-4 text-sm text-muted">
         {readOnly
           ? "Nothing logged here yet."
-          : "Nothing logged yet. Head to the Identify tab and photograph your first moth or butterfly."}
+          : "Nothing logged yet. Head to the Identify tab and photograph your first critter."}
       </p>
     );
 
@@ -142,7 +147,7 @@ export function LogView({
 
       {onList.length > 0 && (
         <section className="space-y-3">
-          {offGroups.length > 0 && (
+          {hasOff && (
             <h2 className="text-sm font-semibold">
               Butterflies &amp; moths{" "}
               <span className="font-normal text-muted">· {onList.length}</span>
@@ -169,32 +174,45 @@ export function LogView({
         </section>
       )}
 
-      {offGroups.map(([group, rows]) => (
-        <section key={group} className="space-y-3">
-          <h2 className="text-sm font-semibold">
-            {group} <span className="font-normal text-muted">· {rows.length}</span>
-          </h2>
-          <ul className="space-y-3">
-            {rows.map((e) => (
-              <LogCard
-                key={e.id}
-                entry={e}
-                dashed
-                readOnly={readOnly}
-                open={openId === e.id}
-                busy={busyId === e.id}
-                onOpen={() => setSheetFor(e.identifiedScientific)}
-                onZoom={() =>
-                  setZoom({ src: e.photoUrl, alt: e.identifiedName })
-                }
-                onToggle={() => setOpenId(openId === e.id ? null : e.id)}
-                onChange={() => setPickFor(e)}
-                onDelete={() => del(e)}
-              />
+      {(
+        [
+          ["Other insects & arthropods", offTiers.arthropod],
+          ["Other critters", offTiers.critter],
+        ] as const
+      ).map(([tierLabel, tierGroups]) =>
+        tierGroups.length === 0 ? null : (
+          <div key={tierLabel} className="space-y-3">
+            <h2 className="text-sm font-semibold text-muted">{tierLabel}</h2>
+            {tierGroups.map(([group, rows]) => (
+              <section key={group} className="space-y-3">
+                <h3 className="text-sm font-semibold">
+                  {group}{" "}
+                  <span className="font-normal text-muted">· {rows.length}</span>
+                </h3>
+                <ul className="space-y-3">
+                  {rows.map((e) => (
+                    <LogCard
+                      key={e.id}
+                      entry={e}
+                      dashed
+                      readOnly={readOnly}
+                      open={openId === e.id}
+                      busy={busyId === e.id}
+                      onOpen={() => setSheetFor(e.identifiedScientific)}
+                      onZoom={() =>
+                        setZoom({ src: e.photoUrl, alt: e.identifiedName })
+                      }
+                      onToggle={() => setOpenId(openId === e.id ? null : e.id)}
+                      onChange={() => setPickFor(e)}
+                      onDelete={() => del(e)}
+                    />
+                  ))}
+                </ul>
+              </section>
             ))}
-          </ul>
-        </section>
-      ))}
+          </div>
+        ),
+      )}
 
       {pickFor && (
         <SpeciesPicker

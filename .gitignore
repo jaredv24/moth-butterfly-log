@@ -48,3 +48,7 @@ public/uploads/
 .claude/skills/
 skills-lock.json
 .env.vercel-pull
+
+# Python
+__pycache__/
+*.pyc

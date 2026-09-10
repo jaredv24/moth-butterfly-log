@@ -10,7 +10,7 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const metadata: Metadata = {
   title: "Moth & Butterfly Log",
   description:
-    "Snap a moth or butterfly, identify it, and check it off your North American life list.",
+    "Snap a moth, butterfly, or other critter, identify it, and check it off your life list.",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "Lep Log", statusBarStyle: "default" },
   icons: {

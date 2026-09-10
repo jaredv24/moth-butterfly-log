@@ -5,8 +5,10 @@ export type IdCandidate = {
   inatTaxonId?: number;
   /** 0..1 */
   confidence: number;
-  /** Taxonomic order from the provider, e.g. "Coleoptera" (used for non-Lep bugs). */
+  /** Taxonomic order from the provider, e.g. "Coleoptera" (used for grouping non-Lep critters). */
   order?: string | null;
+  /** Taxonomic class, e.g. "Reptilia" — a coarser fallback for grouping. */
+  taxonClass?: string | null;
   /** A representative photo of the species from the provider, if any. */
   imageUrl?: string | null;
 };

@@ -13,6 +13,7 @@
     "db:seed": "tsx db/seed.ts",
     "db:setup": "npm run db:migrate && npm run db:seed",
     "build:checklist": "tsx scripts/build-checklist.ts",
+    "build:critter-list": "tsx scripts/build-critter-list.ts",
     "build:icons": "tsx scripts/build-icons.ts"
   },
   "dependencies": {
