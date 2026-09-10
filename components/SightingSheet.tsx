@@ -48,6 +48,9 @@ export function SightingSheet({
         ? "On your checklist"
         : "On the checklist"
       : null);
+  const showSci =
+    head.identifiedName.toLowerCase() !==
+    head.identifiedScientific.toLowerCase();
 
   return (
     <>
@@ -61,120 +64,114 @@ export function SightingSheet({
       >
         <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-border" />
 
-        <div className="flex items-start gap-3">
-          <div className="flex shrink-0 flex-col items-center gap-2">
-            <figure className="text-center">
-              <button
-                type="button"
-                onClick={() =>
-                  setZoom({ src: head.photoUrl, alt: head.identifiedName })
-                }
-              >
-                <Thumb
-                  src={head.photoUrl}
-                  alt={head.identifiedName}
-                  className="h-24 w-24 rounded-xl bg-border object-cover"
-                />
-              </button>
-              {head.refPhotoUrl && (
-                <figcaption className="mt-0.5 text-[10px] text-muted">
-                  Sighting
-                </figcaption>
-              )}
-            </figure>
-            {head.refPhotoUrl && (
-              <figure className="text-center">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setZoom({
-                      src:
-                        inatPhoto(head.refPhotoUrl, "large") ??
-                        head.refPhotoUrl!,
-                      alt: `${head.identifiedName} — reference`,
-                    })
-                  }
-                >
-                  <Thumb
-                    src={head.refPhotoUrl}
-                    alt=""
-                    className="h-12 w-12 rounded-lg bg-border object-cover"
-                  />
-                </button>
-                <figcaption className="mt-0.5 text-[10px] text-muted">
-                  iNaturalist
-                </figcaption>
-              </figure>
+        <button
+          type="button"
+          onClick={() =>
+            setZoom({ src: head.photoUrl, alt: head.identifiedName })
+          }
+          className="block w-full"
+        >
+          <Thumb
+            src={head.photoUrl}
+            alt={head.identifiedName}
+            className="h-52 w-full rounded-xl bg-border object-cover"
+          />
+        </button>
+
+        <h2 className="mt-3 text-xl font-bold">{head.identifiedName}</h2>
+        {(showSci || group) && (
+          <p className="text-sm text-muted">
+            {showSci && (
+              <span className="italic">{head.identifiedScientific}</span>
             )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <h2 className="text-lg font-bold">{head.identifiedName}</h2>
-            {head.identifiedName.toLowerCase() !==
-              head.identifiedScientific.toLowerCase() && (
-              <p className="text-sm italic text-muted">
-                {head.identifiedScientific}
-              </p>
-            )}
-            {group && <p className="mt-1 text-xs text-muted">{group}</p>}
-            <a
-              href={
-                head.inatTaxonId
-                  ? `https://www.inaturalist.org/taxa/${head.inatTaxonId}`
-                  : `https://www.inaturalist.org/taxa/search?q=${encodeURIComponent(head.identifiedScientific)}`
+            {showSci && group && " · "}
+            {group}
+          </p>
+        )}
+
+        <div className="mt-2 flex items-center gap-2">
+          {head.refPhotoUrl && (
+            <button
+              type="button"
+              onClick={() =>
+                setZoom({
+                  src:
+                    inatPhoto(head.refPhotoUrl, "large") ?? head.refPhotoUrl!,
+                  alt: `${head.identifiedName} — reference`,
+                })
               }
-              target="_blank"
-              rel="noreferrer"
-              className="mt-1 inline-block text-xs font-medium text-accent"
+              className="shrink-0"
             >
-              View on iNaturalist ↗
-            </a>
-          </div>
+              <Thumb
+                src={head.refPhotoUrl}
+                alt=""
+                className="h-14 w-14 rounded-lg bg-border object-cover"
+              />
+            </button>
+          )}
+          <a
+            href={
+              head.inatTaxonId
+                ? `https://www.inaturalist.org/taxa/${head.inatTaxonId}`
+                : `https://www.inaturalist.org/taxa/search?q=${encodeURIComponent(head.identifiedScientific)}`
+            }
+            target="_blank"
+            rel="noreferrer"
+            className="text-xs font-medium text-accent"
+          >
+            {head.refPhotoUrl ? "Reference photo — " : ""}View on iNaturalist ↗
+          </a>
         </div>
 
         {(() => {
-          const meta = (s: LogItem) => (
-            <div className="min-w-0 flex-1 text-sm">
-              <div className="font-medium">{fmt(s.observedAt)}</div>
-              {s.placeLabel && (
-                <div className="text-xs text-muted">📍 {s.placeLabel}</div>
+          const actions = (s: LogItem) => (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+              {s.confidence != null && (
+                <span>{Math.round(s.confidence * 100)}% match</span>
               )}
-              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted">
-                {s.confidence != null && (
-                  <span>{Math.round(s.confidence * 100)}% match</span>
-                )}
-                {s.inatObservationId && (
-                  <a
-                    href={`https://www.inaturalist.org/observations/${s.inatObservationId}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-medium text-accent"
-                  >
-                    iNaturalist ↗
-                  </a>
-                )}
-                {code && (
-                  <button
-                    onClick={() => {
-                      setSentTo(null);
-                      setShareFor(s);
-                    }}
-                    className="font-medium text-accent"
-                  >
-                    Send to a friend
-                  </button>
-                )}
-              </div>
+              {s.inatObservationId && (
+                <a
+                  href={`https://www.inaturalist.org/observations/${s.inatObservationId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-medium text-accent"
+                >
+                  iNaturalist ↗
+                </a>
+              )}
+              {code && (
+                <button
+                  onClick={() => {
+                    setSentTo(null);
+                    setShareFor(s);
+                  }}
+                  className="font-medium text-accent"
+                >
+                  Send to a friend
+                </button>
+              )}
             </div>
           );
 
           // one sighting → its photo is already the header photo, don't repeat it
           if (rows.length === 1) {
-            return <div className="mt-4">{meta(rows[0])}</div>;
+            const s = rows[0];
+            return (
+              <div className="mt-4 space-y-1.5 border-t border-border pt-4">
+                <div className="text-sm">
+                  <span className="font-medium">{fmt(s.observedAt)}</span>
+                  {s.placeLabel && (
+                    <span className="text-muted"> · 📍 {s.placeLabel}</span>
+                  )}
+                </div>
+                {actions(s)}
+              </div>
+            );
           }
 
           return (
-            <>
-              <h3 className="mt-5 mb-2 text-sm font-semibold">
+            <div className="mt-4 border-t border-border pt-4">
+              <h3 className="mb-2 text-sm font-semibold">
                 {owned ? "Your sightings" : "Sightings"} ({rows.length})
               </h3>
               <ul className="space-y-3">
@@ -193,11 +190,19 @@ export function SightingSheet({
                         className="h-16 w-16 rounded-lg bg-border object-cover"
                       />
                     </button>
-                    {meta(s)}
+                    <div className="min-w-0 flex-1 space-y-1 text-sm">
+                      <div className="font-medium">{fmt(s.observedAt)}</div>
+                      {s.placeLabel && (
+                        <div className="text-xs text-muted">
+                          📍 {s.placeLabel}
+                        </div>
+                      )}
+                      {actions(s)}
+                    </div>
                   </li>
                 ))}
               </ul>
-            </>
+            </div>
           );
         })()}
 
