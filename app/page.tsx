@@ -16,6 +16,25 @@ import type { Candidate, ChecklistItem, IdentifyResponse, LogResponse } from "@/
 type Phase = "idle" | "identifying" | "results" | "logging" | "done";
 type Coords = { lat: number; lng: number } | null;
 
+/** Decode a "data:image/...;base64,..." string to a Blob. Tolerant of stray
+ *  whitespace; returns null on anything unexpected (Safari's atob is strict). */
+function dataUrlToBlob(dataUrl: string | null): Blob | null {
+  if (!dataUrl) return null;
+  try {
+    const comma = dataUrl.indexOf(",");
+    const b64 = (comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl).replace(
+      /\s/g,
+      "",
+    );
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new Blob([bytes], { type: "image/jpeg" });
+  } catch {
+    return null;
+  }
+}
+
 type LogArgs = {
   name: string;
   scientificName: string;
@@ -171,15 +190,11 @@ export default function IdentifyPage() {
       setCandidates(d.candidates);
       setIdMeta({ placeLabel: d.placeLabel, observedAt: d.observedAt });
       // use the subject-cropped image the identifier analysed as the sighting photo
-      if (d.croppedPhoto) {
-        try {
-          const cropBlob = await (await fetch(d.croppedPhoto)).blob();
-          photoRef.current = cropBlob;
-          setPhotoPreview(URL.createObjectURL(cropBlob));
-          setCropped(true);
-        } catch {
-          /* keep the original */
-        }
+      const cropBlob = dataUrlToBlob(d.croppedPhoto);
+      if (cropBlob && cropBlob.size > 0) {
+        photoRef.current = cropBlob;
+        setPhotoPreview(URL.createObjectURL(cropBlob));
+        setCropped(true);
       }
       setPhase("results");
     } catch (err) {
