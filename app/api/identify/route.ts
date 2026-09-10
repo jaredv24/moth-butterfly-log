@@ -3,6 +3,7 @@ import { getChecklist } from "@/lib/data";
 import { getIdProvider } from "@/lib/id-provider";
 import { bugGroupFor } from "@/lib/bug-groups";
 import { matchCandidate } from "@/lib/checklist-match";
+import { resolveTaxa } from "@/lib/inat-taxa";
 import { assessPlausibility } from "@/lib/plausibility";
 import { reverseGeocode } from "@/lib/geocode";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
@@ -102,6 +103,30 @@ export async function POST(req: Request) {
         (c, i) => i === 0 || (c.confidence >= 0.04 && c.confidence >= top * 0.15),
       )
       .slice(0, 5);
+
+    // Off-checklist critters (turtles, frogs, …) have no reference photo — the
+    // provider doesn't supply one. Look one up from iNaturalist, and grab the
+    // real taxon id while we're there (tightens the plausibility check too).
+    const needsPhoto = candidates.filter(
+      (c) => c.match.thumbUrl == null,
+    );
+    if (needsPhoto.length > 0) {
+      try {
+        const taxa = await resolveTaxa(needsPhoto.map((c) => c.scientificName));
+        for (const c of candidates) {
+          const info = taxa.get(c.scientificName.trim().toLowerCase());
+          if (!info) continue;
+          if (c.match.thumbUrl == null && info.thumbUrl) {
+            c.match.thumbUrl = info.thumbUrl;
+          }
+          if (c.inatTaxonId == null && info.inatTaxonId != null) {
+            c.inatTaxonId = info.inatTaxonId;
+          }
+        }
+      } catch {
+        /* photos are a nice-to-have */
+      }
+    }
 
     // Location-aware sanity check: how often is each candidate actually
     // recorded near here, this month? Annotates + re-ranks gently. Fails soft.

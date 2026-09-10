@@ -85,9 +85,18 @@ function resolve(
   order: string | null | undefined,
   taxonClass: string | null | undefined,
 ): Group {
-  if (order && ORDER_GROUPS[order]) return ORDER_GROUPS[order];
-  if (taxonClass && CLASS_GROUPS[taxonClass]) return CLASS_GROUPS[taxonClass];
-  return FALLBACK;
+  // BioCLIP's tree is inconsistent about which field holds the group-defining
+  // rank — e.g. turtles come back as class "Testudines" with a null order — so
+  // check the specific map against both fields before the coarse class map.
+  const a = order?.trim() || null;
+  const c = taxonClass?.trim() || null;
+  return (
+    (a && ORDER_GROUPS[a]) ||
+    (c && ORDER_GROUPS[c]) ||
+    (c && CLASS_GROUPS[c]) ||
+    (a && CLASS_GROUPS[a]) ||
+    FALLBACK
+  );
 }
 
 /** Friendly group name for an off-checklist critter. */
