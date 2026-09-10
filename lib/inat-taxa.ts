@@ -1,7 +1,11 @@
 const INAT = "https://api.inaturalist.org/v1";
 const UA = "moth-butterfly-log/1.0 (github.com/jaredv24/moth-butterfly-log)";
 
-export type TaxonInfo = { inatTaxonId: number | null; thumbUrl: string | null };
+export type TaxonInfo = {
+  inatTaxonId: number | null;
+  thumbUrl: string | null;
+  commonName: string | null;
+};
 
 // Module-level cache — survives across requests within a warm serverless
 // instance. Species names repeat a lot, so this saves most of the lookups.
@@ -12,7 +16,11 @@ async function lookup(name: string): Promise<TaxonInfo> {
   const hit = cache.get(key);
   if (hit) return hit;
 
-  const empty: TaxonInfo = { inatTaxonId: null, thumbUrl: null };
+  const empty: TaxonInfo = {
+    inatTaxonId: null,
+    thumbUrl: null,
+    commonName: null,
+  };
   try {
     const qs = new URLSearchParams({
       q: name,
@@ -29,6 +37,7 @@ async function lookup(name: string): Promise<TaxonInfo> {
       results?: {
         id: number;
         name: string;
+        preferred_common_name?: string | null;
         default_photo?: { square_url?: string; medium_url?: string } | null;
       }[];
     };
@@ -42,6 +51,7 @@ async function lookup(name: string): Promise<TaxonInfo> {
         match.default_photo?.square_url ??
         match.default_photo?.medium_url ??
         null,
+      commonName: match.preferred_common_name?.trim() || null,
     };
     cache.set(key, info);
     return info;

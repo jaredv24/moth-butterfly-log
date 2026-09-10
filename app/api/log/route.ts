@@ -57,6 +57,7 @@ export async function POST(req: Request) {
       name: z.string().min(1),
       scientificName: z.string().min(1),
       inatTaxonId: z.coerce.number().int().optional(),
+      thumbUrl: z.string().url().optional(),
       confidence: z.coerce.number().optional(),
       speciesId: z.coerce.number().int().optional(),
       matchLevel: z.enum(matchLevels).default("species"),
@@ -114,6 +115,7 @@ export async function POST(req: Request) {
       placeLabel,
       observedAt,
       inatTaxonId: body.inatTaxonId ?? null,
+      refPhotoUrl: speciesId == null ? (body.thumbUrl ?? null) : null,
       otherGroup: speciesId == null ? (body.otherGroup ?? null) : null,
     })
     .returning();
@@ -157,6 +159,7 @@ export async function PATCH(req: Request) {
       matchLevel: "species",
       otherGroup: null,
       inatTaxonId: null,
+      refPhotoUrl: null,
     })
     .where(eq(sightings.id, sightingId))
     .returning();

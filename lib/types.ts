@@ -56,6 +56,7 @@ export type LogItem = {
   observedAt: string;
   inatObservationId: number | null;
   inatTaxonId: number | null;
+  refPhotoUrl: string | null;
   otherGroup: string | null;
 };
 

@@ -61,19 +61,49 @@ export function SightingSheet({
         <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-border" />
 
         <div className="flex items-start gap-3">
-          <button
-            type="button"
-            onClick={() =>
-              setZoom({ src: head.photoUrl, alt: head.identifiedName })
-            }
-            className="shrink-0"
-          >
-            <Thumb
-              src={head.photoUrl}
-              alt={head.identifiedName}
-              className="h-20 w-20 rounded-xl bg-border object-cover"
-            />
-          </button>
+          <div className="flex shrink-0 gap-1.5">
+            <figure>
+              <button
+                type="button"
+                onClick={() =>
+                  setZoom({ src: head.photoUrl, alt: head.identifiedName })
+                }
+              >
+                <Thumb
+                  src={head.photoUrl}
+                  alt={head.identifiedName}
+                  className="h-20 w-20 rounded-xl bg-border object-cover"
+                />
+              </button>
+              {head.refPhotoUrl && (
+                <figcaption className="mt-0.5 text-center text-[10px] text-muted">
+                  yours
+                </figcaption>
+              )}
+            </figure>
+            {head.refPhotoUrl && (
+              <figure>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setZoom({
+                      src: head.refPhotoUrl!,
+                      alt: `${head.identifiedName} — reference photo`,
+                    })
+                  }
+                >
+                  <Thumb
+                    src={head.refPhotoUrl}
+                    alt=""
+                    className="h-20 w-20 rounded-xl bg-border object-cover"
+                  />
+                </button>
+                <figcaption className="mt-0.5 text-center text-[10px] text-muted">
+                  iNaturalist
+                </figcaption>
+              </figure>
+            )}
+          </div>
           <div className="min-w-0">
             <h2 className="text-lg font-bold">{head.identifiedName}</h2>
             {head.identifiedName.toLowerCase() !==

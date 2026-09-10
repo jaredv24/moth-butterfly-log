@@ -1,0 +1,1 @@
+ALTER TABLE "sightings" ADD COLUMN "ref_photo_url" text;

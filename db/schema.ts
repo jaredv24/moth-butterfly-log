@@ -88,6 +88,9 @@ export const sightings = pgTable(
     // iNaturalist taxon id at ID time (mainly for off-checklist critters — on-list
     // species get it from the checklist)
     inatTaxonId: integer("inat_taxon_id"),
+    // a stock reference photo of the species (off-checklist critters; on-list
+    // species use the checklist thumb)
+    refPhotoUrl: text("ref_photo_url"),
     // friendly group for off-checklist bugs, e.g. "Beetles" (null for moths/butterflies)
     otherGroup: text("other_group"),
   },

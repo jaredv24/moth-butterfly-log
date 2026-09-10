@@ -104,15 +104,18 @@ export async function POST(req: Request) {
       )
       .slice(0, 5);
 
-    // Off-checklist critters (turtles, frogs, …) have no reference photo — the
-    // provider doesn't supply one. Look one up from iNaturalist, and grab the
-    // real taxon id while we're there (tightens the plausibility check too).
-    const needsPhoto = candidates.filter(
-      (c) => c.match.thumbUrl == null,
+    // Off-checklist critters (turtles, frogs, …) come from the provider with no
+    // reference photo, and sometimes no common name. Fill both from iNaturalist,
+    // and grab the real taxon id while we're there (tightens plausibility too).
+    const needsLookup = candidates.filter(
+      (c) =>
+        c.match.thumbUrl == null ||
+        c.inatTaxonId == null ||
+        c.name.toLowerCase() === c.scientificName.toLowerCase(),
     );
-    if (needsPhoto.length > 0) {
+    if (needsLookup.length > 0) {
       try {
-        const taxa = await resolveTaxa(needsPhoto.map((c) => c.scientificName));
+        const taxa = await resolveTaxa(needsLookup.map((c) => c.scientificName));
         for (const c of candidates) {
           const info = taxa.get(c.scientificName.trim().toLowerCase());
           if (!info) continue;
@@ -122,9 +125,17 @@ export async function POST(req: Request) {
           if (c.inatTaxonId == null && info.inatTaxonId != null) {
             c.inatTaxonId = info.inatTaxonId;
           }
+          // no common name from the provider → use iNaturalist's
+          if (
+            info.commonName &&
+            c.name.toLowerCase() === c.scientificName.toLowerCase()
+          ) {
+            c.name = info.commonName;
+            if (c.match.speciesId == null) c.match.commonName = info.commonName;
+          }
         }
       } catch {
-        /* photos are a nice-to-have */
+        /* enrichment is a nice-to-have */
       }
     }
 

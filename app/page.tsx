@@ -23,6 +23,7 @@ type LogArgs = {
   matchLevel: "species" | "genus" | "off-list";
   confidence: number | null;
   inatTaxonId: number | null;
+  thumbUrl?: string | null;
   otherGroup?: string | null;
 };
 
@@ -188,6 +189,7 @@ export default function IdentifyPage() {
       if (args.speciesId != null) form.append("speciesId", String(args.speciesId));
       if (args.confidence != null) form.append("confidence", String(args.confidence));
       if (args.inatTaxonId != null) form.append("inatTaxonId", String(args.inatTaxonId));
+      if (args.thumbUrl) form.append("thumbUrl", args.thumbUrl);
       if (args.otherGroup) form.append("otherGroup", args.otherGroup);
       const c = coordsRef.current;
       if (c) {
@@ -224,6 +226,7 @@ export default function IdentifyPage() {
       matchLevel: c.match.matchLevel,
       confidence: c.confidence,
       inatTaxonId: c.inatTaxonId,
+      thumbUrl: c.match.thumbUrl,
       otherGroup: c.otherGroup,
     });
 

@@ -124,6 +124,8 @@ export type LogEntry = {
   inatObservationId: number | null;
   /** iNaturalist taxon id — from the checklist for on-list species, else null */
   inatTaxonId: number | null;
+  /** a stock reference photo of the species */
+  refPhotoUrl: string | null;
   otherGroup: string | null;
 };
 
@@ -151,6 +153,7 @@ export async function getUserLog(userId: string): Promise<LogEntry[]> {
     observedAt: r.observedAt.toISOString(),
     inatObservationId: r.inatObservationId,
     inatTaxonId: sp?.inatTaxonId ?? r.inatTaxonId ?? null,
+    refPhotoUrl: sp?.thumbUrl ?? r.refPhotoUrl ?? null,
     otherGroup: r.otherGroup,
   }));
 }

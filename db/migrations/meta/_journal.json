@@ -92,6 +92,13 @@
       "when": 1789024720770,
       "tag": "0012_sighting_taxon",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1789025094657,
+      "tag": "0013_ref_photo",
+      "breakpoints": true
     }
   ]
 }
