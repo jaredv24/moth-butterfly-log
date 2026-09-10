@@ -131,60 +131,75 @@ export function SightingSheet({
           </div>
         </div>
 
-        <h3 className="mt-5 mb-2 text-sm font-semibold">
-          {owned ? "Your sightings" : "Sightings"} ({rows.length})
-        </h3>
-        <ul className="space-y-3">
-          {rows.map((s) => (
-            <li key={s.id} className="flex gap-3">
-              <button
-                type="button"
-                onClick={() =>
-                  setZoom({ src: s.photoUrl, alt: s.identifiedName })
-                }
-                className="shrink-0"
-              >
-                <Thumb
-                  src={s.photoUrl}
-                  alt=""
-                  className="h-16 w-16 rounded-lg bg-border object-cover"
-                />
-              </button>
-              <div className="min-w-0 flex-1 text-sm">
-                <div className="font-medium">{fmt(s.observedAt)}</div>
-                {s.placeLabel && (
-                  <div className="text-xs text-muted">📍 {s.placeLabel}</div>
+        {(() => {
+          const meta = (s: LogItem) => (
+            <div className="min-w-0 flex-1 text-sm">
+              <div className="font-medium">{fmt(s.observedAt)}</div>
+              {s.placeLabel && (
+                <div className="text-xs text-muted">📍 {s.placeLabel}</div>
+              )}
+              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted">
+                {s.confidence != null && (
+                  <span>{Math.round(s.confidence * 100)}% match</span>
                 )}
-                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted">
-                  {s.confidence != null && (
-                    <span>{Math.round(s.confidence * 100)}% match</span>
-                  )}
-                  {s.inatObservationId && (
-                    <a
-                      href={`https://www.inaturalist.org/observations/${s.inatObservationId}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-medium text-accent"
-                    >
-                      iNaturalist ↗
-                    </a>
-                  )}
-                  {code && (
-                    <button
-                      onClick={() => {
-                        setSentTo(null);
-                        setShareFor(s);
-                      }}
-                      className="font-medium text-accent"
-                    >
-                      Send to a friend
-                    </button>
-                  )}
-                </div>
+                {s.inatObservationId && (
+                  <a
+                    href={`https://www.inaturalist.org/observations/${s.inatObservationId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium text-accent"
+                  >
+                    iNaturalist ↗
+                  </a>
+                )}
+                {code && (
+                  <button
+                    onClick={() => {
+                      setSentTo(null);
+                      setShareFor(s);
+                    }}
+                    className="font-medium text-accent"
+                  >
+                    Send to a friend
+                  </button>
+                )}
               </div>
-            </li>
-          ))}
-        </ul>
+            </div>
+          );
+
+          // one sighting → its photo is already the header photo, don't repeat it
+          if (rows.length === 1) {
+            return <div className="mt-4">{meta(rows[0])}</div>;
+          }
+
+          return (
+            <>
+              <h3 className="mt-5 mb-2 text-sm font-semibold">
+                {owned ? "Your sightings" : "Sightings"} ({rows.length})
+              </h3>
+              <ul className="space-y-3">
+                {rows.map((s) => (
+                  <li key={s.id} className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setZoom({ src: s.photoUrl, alt: s.identifiedName })
+                      }
+                      className="shrink-0"
+                    >
+                      <Thumb
+                        src={s.photoUrl}
+                        alt=""
+                        className="h-16 w-16 rounded-lg bg-border object-cover"
+                      />
+                    </button>
+                    {meta(s)}
+                  </li>
+                ))}
+              </ul>
+            </>
+          );
+        })()}
 
         {sentTo && (
           <Link
