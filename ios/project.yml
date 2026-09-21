@@ -2,7 +2,7 @@ name: LepLog
 options:
   bundleIdPrefix: com.jaredvick
   deploymentTarget:
-    iOS: "16.0"
+    iOS: "26.0"
 configs:
   Debug: debug
   Release: release
@@ -10,7 +10,7 @@ targets:
   LepLog:
     type: application
     platform: iOS
-    deploymentTarget: "16.0"
+    deploymentTarget: "26.0"
     sources:
       - path: LepLog/Sources
     resources:
