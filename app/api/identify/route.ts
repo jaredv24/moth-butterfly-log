@@ -9,7 +9,9 @@ import { reverseGeocode } from "@/lib/geocode";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+// 60s (not 30) so a cold BioCLIP start (20-40s per bioclip/README.md) has room
+// to finish instead of Vercel killing the function and the client seeing a 504.
+export const maxDuration = 60;
 
 const MAX_BYTES = 12 * 1024 * 1024;
 
