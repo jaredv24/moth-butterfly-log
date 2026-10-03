@@ -183,6 +183,23 @@ export const pushSubscriptions = pgTable(
   (t) => [index("push_subscriptions_user_idx").on(t.userId)],
 );
 
+/** An iPhone registered for native push (APNs) by the iOS app. The token is the device. */
+export const apnsDevices = pgTable(
+  "apns_devices",
+  {
+    token: text("token").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    // "sandbox" for development builds, "production" for TestFlight / App Store
+    environment: text("environment", { enum: ["sandbox", "production"] }).notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("apns_devices_user_idx").on(t.userId)],
+);
+
 export type User = typeof users.$inferSelect;
 export type ChecklistSpecies = typeof checklistSpecies.$inferSelect;
 export type Sighting = typeof sightings.$inferSelect;

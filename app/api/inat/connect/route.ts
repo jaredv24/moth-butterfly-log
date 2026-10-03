@@ -11,7 +11,8 @@ export async function GET(req: Request) {
   if (!inatConfigured()) {
     return NextResponse.json({ error: "iNaturalist is not configured" }, { status: 501 });
   }
-  const code = normalizeUserCode(new URL(req.url).searchParams.get("code") ?? "");
+  const sp = new URL(req.url).searchParams;
+  const code = normalizeUserCode(sp.get("code") ?? "");
   if (!isValidUserCode(code)) {
     return NextResponse.json({ error: "valid ?code= is required" }, { status: 400 });
   }
@@ -19,6 +20,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "unknown code" }, { status: 404 });
   }
 
-  const state = signState(code);
+  // The iOS app signs in through a web sheet and wants the result handed back to it.
+  const state = signState(sp.get("app") === "1" ? `${code}:app` : code);
   return NextResponse.redirect(authorizeUrl(state, inatRedirectUri(req)));
 }

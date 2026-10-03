@@ -9,7 +9,8 @@ import { inatRedirectUri } from "@/lib/inat-sync";
 
 export const runtime = "nodejs";
 
-function settingsRedirect(req: Request, params: string) {
+function settingsRedirect(req: Request, params: string, toApp = false) {
+  if (toApp) return NextResponse.redirect(`leplog://inat?${params}`);
   const url = new URL("/profile", req.url);
   url.search = params;
   return NextResponse.redirect(url);
@@ -17,15 +18,16 @@ function settingsRedirect(req: Request, params: string) {
 
 export async function GET(req: Request) {
   const sp = new URL(req.url).searchParams;
-  const denied = sp.get("error");
-  if (denied) return settingsRedirect(req, "inat=denied");
+  const stateValue = verifyState(sp.get("state") ?? "");
+  const toApp = !!stateValue?.endsWith(":app");
+  const userCode = stateValue?.replace(/:app$/, "") ?? null;
+  if (sp.get("error")) return settingsRedirect(req, "inat=denied", toApp);
 
   const authCode = sp.get("code");
-  const userCode = verifyState(sp.get("state") ?? "");
-  if (!authCode || !userCode) return settingsRedirect(req, "inat=badstate");
+  if (!authCode || !userCode) return settingsRedirect(req, "inat=badstate", toApp);
 
   const user = await findUser(userCode);
-  if (!user) return settingsRedirect(req, "inat=badstate");
+  if (!user) return settingsRedirect(req, "inat=badstate", toApp);
 
   try {
     const accessToken = await exchangeCode(authCode, inatRedirectUri(req));
@@ -41,9 +43,9 @@ export async function GET(req: Request) {
       })
       .where(eq(users.id, user.id));
 
-    return settingsRedirect(req, `inat=connected&user=${encodeURIComponent(me.login)}`);
+    return settingsRedirect(req, `inat=connected&user=${encodeURIComponent(me.login)}`, toApp);
   } catch (err) {
     console.error("iNat connect failed:", err);
-    return settingsRedirect(req, "inat=error");
+    return settingsRedirect(req, "inat=error", toApp);
   }
 }

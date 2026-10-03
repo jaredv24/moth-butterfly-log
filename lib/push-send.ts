@@ -1,7 +1,8 @@
 import webpush from "web-push";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { pushSubscriptions } from "@/db/schema";
+import { apnsDevices, pushSubscriptions } from "@/db/schema";
+import { apnsConfigured, sendApns } from "@/lib/apns";
 
 const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 const privateKey = process.env.VAPID_PRIVATE_KEY;
@@ -20,8 +21,13 @@ type Payload = {
   tag?: string;
 };
 
-/** Fan a notification out to every device a user has subscribed. Soft-fails. */
+/** Fan a notification out to every device a user has: web push for browsers,
+ *  APNs for the iOS app. Soft-fails. */
 export async function pushToUser(userId: string, payload: Payload) {
+  await Promise.all([sendWeb(userId, payload), sendNative(userId, payload)]);
+}
+
+async function sendWeb(userId: string, payload: Payload) {
   if (!pushConfigured) return;
   const subs = await db
     .select()
@@ -48,4 +54,20 @@ export async function pushToUser(userId: string, payload: Payload) {
       }
     }),
   );
+}
+
+async function sendNative(userId: string, payload: Payload) {
+  if (!apnsConfigured) return;
+  const devices = await db
+    .select()
+    .from(apnsDevices)
+    .where(eq(apnsDevices.userId, userId));
+  const dead = await sendApns(devices, {
+    title: payload.title || undefined,
+    body: payload.body,
+    badge: payload.badgeCount,
+    threadId: payload.tag,
+    data: { url: payload.url },
+  });
+  if (dead.length) await db.delete(apnsDevices).where(inArray(apnsDevices.token, dead));
 }
