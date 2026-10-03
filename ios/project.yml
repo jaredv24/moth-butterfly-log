@@ -1,0 +1,82 @@
+name: LepLog
+options:
+  bundleIdPrefix: com.jaredv24
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SDKROOT: iphoneos
+    PRODUCT_NAME: $(TARGET_NAME)
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ALWAYS_SEARCH_USER_PATHS: NO
+    CLANG_ENABLE_MODULES: YES
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: GX7YWG7Q7M
+  configs:
+    Debug:
+      DEBUG_INFORMATION_FORMAT: dwarf
+      ONLY_ACTIVE_ARCH: YES
+      ENABLE_TESTABILITY: YES
+      SWIFT_OPTIMIZATION_LEVEL: -Onone
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+      GCC_OPTIMIZATION_LEVEL: "0"
+    Release:
+      DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
+      SWIFT_OPTIMIZATION_LEVEL: -O
+      SWIFT_COMPILATION_MODE: wholemodule
+      VALIDATE_PRODUCT: YES
+targets:
+  LepLog:
+    type: application
+    platform: iOS
+    sources: [LepLog]
+    entitlements:
+      path: LepLog/LepLog.entitlements
+      properties:
+        aps-environment: development
+    info:
+      path: LepLog/Info.plist
+      properties:
+        CFBundleDisplayName: Lep Log
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSApplicationCategoryType: public.app-category.reference
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        ITSAppUsesNonExemptEncryption: false
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIBackgroundModes: [remote-notification]
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        CFBundleURLTypes:
+          - CFBundleURLName: com.jaredv24.leplog
+            CFBundleURLSchemes: [leplog]
+        NSCameraUsageDescription: Lep Log uses the camera to photograph moths, butterflies and other critters to identify them, and to scan log and friend codes.
+        NSPhotoLibraryUsageDescription: Lep Log lets you identify a critter from a photo you've already taken.
+        NSLocationWhenInUseUsageDescription: Lep Log tags each sighting with where you saw it and shows what's flying near you.
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jaredv24.leplog
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        TARGETED_DEVICE_FAMILY: "1"
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks"
+        ENABLE_PREVIEWS: YES
+    scheme:
+      testTargets: [LepLogTests]
+  LepLogTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [LepLogTests]
+    dependencies:
+      - target: LepLog
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.jaredv24.leplog.tests
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/LepLog.app/LepLog
+        BUNDLE_LOADER: $(TEST_HOST)
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @loader_path/Frameworks"

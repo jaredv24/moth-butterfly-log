@@ -1,0 +1,527 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0230FD9891D8F847DD6E384E /* CameraPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7528D17568697CCF55AEC1E /* CameraPicker.swift */; };
+		042B1B26E8AAC3D060C537D6 /* Icons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01C81A3E9C8EC80DF1DB76DB /* Icons.swift */; };
+		0E90AE83B61A5F2B62955E13 /* ProfileScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59C1B98559071656A59D5E9A /* ProfileScreen.swift */; };
+		2264738188F9158B31EA77AF /* ShareSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AB1900746B8236383ED6394 /* ShareSheets.swift */; };
+		2B68CDDEEE0A5762037E904F /* Codes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C8F1E48C063905CF1CCB2E2 /* Codes.swift */; };
+		2CCE8AFB6222A59821774747 /* ChecklistSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE7BD54538280185FBD88A0 /* ChecklistSections.swift */; };
+		2CE20653AA8153CFF27B93A1 /* Format.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3FB3DE0ED31833B73E01090 /* Format.swift */; };
+		3202F405E072DB3B24449C48 /* PhotoPrep.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED0A3A0A44496DAF381A25E8 /* PhotoPrep.swift */; };
+		35AF8AD5E9A51C3D3F54AF35 /* IdentifyFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5560090A60BA0C9AF5769BC3 /* IdentifyFlow.swift */; };
+		3A524CF649790C4C55658CA6 /* Push.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8F397C37B9119CB3BF0F28 /* Push.swift */; };
+		3A972825E3CF1081A6262B89 /* Codes+UI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 960F77ABA49B8BBC66522959 /* Codes+UI.swift */; };
+		4F81796E9F9BEBB47857919B /* ChatThreadScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3E146EC32481B279AF5B923 /* ChatThreadScreen.swift */; };
+		517CEAB81AE119AD3FA97809 /* BugGroups.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654B634124053379B4135DBD /* BugGroups.swift */; };
+		562385D5DC16ECC09BCF360D /* API.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3D2086BF61B5F5E146E79A8 /* API.swift */; };
+		5F5C01F81064ADDC7F7CE1A1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0F9BA8BEB6A3ED18D7110F1 /* Assets.xcassets */; };
+		6284542E5BEBA7E2813A6A98 /* MapScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC9033294378ECA96E3312DE /* MapScreen.swift */; };
+		63E93D8D886C0F31D79B00A8 /* LepLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 050C10E061547C1CD864DE89 /* LepLogTests.swift */; };
+		660500C3333347AA9F651F25 /* LogSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070CB9EFEC97F8483A4F6388 /* LogSections.swift */; };
+		6D44C7B66F9C46EA7F3483BC /* LepLogApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B3FBCF0E2B73249A00D80E /* LepLogApp.swift */; };
+		72C818B18D1B4EF3863B0B7F /* JournalScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA67E82A4EC5123702B88F81 /* JournalScreen.swift */; };
+		8B180AC502534915815DB6C4 /* ChatListScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 080424553D3C671F49EEB5FC /* ChatListScreen.swift */; };
+		96D27AAA0215DEBA158531D7 /* Bits.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6E882EDACD327D44FE3B3D7 /* Bits.swift */; };
+		978AE1ACAB34FE9476ECCE62 /* LifeListCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1CC05C398F2C6703C958A03 /* LifeListCard.swift */; };
+		9AD0C55262BD5EFC178C7248 /* FriendLogScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1596FD3E50B5C6A9A143777D /* FriendLogScreen.swift */; };
+		AA7628BE4A8B927DEAD302A6 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABE3647B21A749AC92E78ED5 /* Keychain.swift */; };
+		AD6C18DF8D6EAA6D598C9529 /* SightingSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E467377019FDBFF6ED99765 /* SightingSheet.swift */; };
+		B91B6A34EEA7F9C49AD1CE98 /* FriendsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 448ED2373EBC3FFBB758265B /* FriendsScreen.swift */; };
+		BE86061697565FE52C522800 /* IdentifyScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E018D7C6F527E26C0EC208F0 /* IdentifyScreen.swift */; };
+		C12B52B62A7D0FBB1110CD20 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F45E4694167D063A9F7066 /* Config.swift */; };
+		C6A2C5C10317F7F5DE516232 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AC4571605D4BA02CE22048 /* Theme.swift */; };
+		C70E714A3390DA13BD16B047 /* SpeciesPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB3B2139B659B9584645EAFE /* SpeciesPicker.swift */; };
+		D835C0366C22FC1CB2A8F218 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0FBA331CC664254CC24C2CC /* AppModel.swift */; };
+		DD41FA5C8E76B19A8AD8ED63 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230AE5495C4FF12C63BB394C /* Models.swift */; };
+		E83418F36E42607052B8C932 /* SightingsMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1614537A694331CE33224FC2 /* SightingsMap.swift */; };
+		EE861861391F3CC1F28D69CB /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4965FDB37294923DD063E847 /* PrivacyInfo.xcprivacy */; };
+		FAC19C8DA4739339652BE37C /* PasswordGateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6B6D53AE61B476DC011E0C6 /* PasswordGateView.swift */; };
+		FE02E4F9A2DAE59F734E31AB /* SwitchLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5211F05BC5F55A6D906C336C /* SwitchLogSheet.swift */; };
+		FE2193648512AF66A8EE9322 /* Location.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEF159E36CFC8E49C78DBAA8 /* Location.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		F4AB54C096C28D787A1FFA13 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = ABD1C48A7FEE878FCCA165D3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 40D6648622F5CCB9FDC35C8C;
+			remoteInfo = LepLog;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		01C81A3E9C8EC80DF1DB76DB /* Icons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Icons.swift; sourceTree = "<group>"; };
+		050C10E061547C1CD864DE89 /* LepLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LepLogTests.swift; sourceTree = "<group>"; };
+		070CB9EFEC97F8483A4F6388 /* LogSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogSections.swift; sourceTree = "<group>"; };
+		080424553D3C671F49EEB5FC /* ChatListScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatListScreen.swift; sourceTree = "<group>"; };
+		1596FD3E50B5C6A9A143777D /* FriendLogScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendLogScreen.swift; sourceTree = "<group>"; };
+		1614537A694331CE33224FC2 /* SightingsMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SightingsMap.swift; sourceTree = "<group>"; };
+		1AB1900746B8236383ED6394 /* ShareSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheets.swift; sourceTree = "<group>"; };
+		230AE5495C4FF12C63BB394C /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		448ED2373EBC3FFBB758265B /* FriendsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsScreen.swift; sourceTree = "<group>"; };
+		4965FDB37294923DD063E847 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		5211F05BC5F55A6D906C336C /* SwitchLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitchLogSheet.swift; sourceTree = "<group>"; };
+		5560090A60BA0C9AF5769BC3 /* IdentifyFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentifyFlow.swift; sourceTree = "<group>"; };
+		59C1B98559071656A59D5E9A /* ProfileScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileScreen.swift; sourceTree = "<group>"; };
+		5B8DEAA61A089E143E860FF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		5C8F1E48C063905CF1CCB2E2 /* Codes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Codes.swift; sourceTree = "<group>"; };
+		618973DD781F367BB1C09457 /* LepLogTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LepLogTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		654B634124053379B4135DBD /* BugGroups.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BugGroups.swift; sourceTree = "<group>"; };
+		68B3FBCF0E2B73249A00D80E /* LepLogApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LepLogApp.swift; sourceTree = "<group>"; };
+		7E467377019FDBFF6ED99765 /* SightingSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SightingSheet.swift; sourceTree = "<group>"; };
+		960F77ABA49B8BBC66522959 /* Codes+UI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Codes+UI.swift"; sourceTree = "<group>"; };
+		A3F45E4694167D063A9F7066 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		AA67E82A4EC5123702B88F81 /* JournalScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalScreen.swift; sourceTree = "<group>"; };
+		ABBC04B295032E0020D70DF0 /* LepLog.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LepLog.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		ABE3647B21A749AC92E78ED5 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
+		AC9033294378ECA96E3312DE /* MapScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapScreen.swift; sourceTree = "<group>"; };
+		B0AC4571605D4BA02CE22048 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		B0F9BA8BEB6A3ED18D7110F1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BEE7BD54538280185FBD88A0 /* ChecklistSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChecklistSections.swift; sourceTree = "<group>"; };
+		C1CC05C398F2C6703C958A03 /* LifeListCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeListCard.swift; sourceTree = "<group>"; };
+		C7528D17568697CCF55AEC1E /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
+		D3D2086BF61B5F5E146E79A8 /* API.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
+		D8A268F009A5FD199E154E73 /* LepLog.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LepLog.entitlements; sourceTree = "<group>"; };
+		DF8F397C37B9119CB3BF0F28 /* Push.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Push.swift; sourceTree = "<group>"; };
+		E018D7C6F527E26C0EC208F0 /* IdentifyScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentifyScreen.swift; sourceTree = "<group>"; };
+		E0FBA331CC664254CC24C2CC /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		E3E146EC32481B279AF5B923 /* ChatThreadScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatThreadScreen.swift; sourceTree = "<group>"; };
+		E6E882EDACD327D44FE3B3D7 /* Bits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bits.swift; sourceTree = "<group>"; };
+		ED0A3A0A44496DAF381A25E8 /* PhotoPrep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPrep.swift; sourceTree = "<group>"; };
+		F3FB3DE0ED31833B73E01090 /* Format.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Format.swift; sourceTree = "<group>"; };
+		F6B6D53AE61B476DC011E0C6 /* PasswordGateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordGateView.swift; sourceTree = "<group>"; };
+		FB3B2139B659B9584645EAFE /* SpeciesPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeciesPicker.swift; sourceTree = "<group>"; };
+		FEF159E36CFC8E49C78DBAA8 /* Location.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Location.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		1B76FB09628E108ACC385B33 /* LepLog */ = {
+			isa = PBXGroup;
+			children = (
+				B0F9BA8BEB6A3ED18D7110F1 /* Assets.xcassets */,
+				5B8DEAA61A089E143E860FF9 /* Info.plist */,
+				D8A268F009A5FD199E154E73 /* LepLog.entitlements */,
+				68B3FBCF0E2B73249A00D80E /* LepLogApp.swift */,
+				4965FDB37294923DD063E847 /* PrivacyInfo.xcprivacy */,
+				C3369D32247EF8F520AABFFC /* Core */,
+				D74C5680A193FB9DB986FF1A /* Views */,
+			);
+			path = LepLog;
+			sourceTree = "<group>";
+		};
+		4DD85C5871A167B8417D0E22 = {
+			isa = PBXGroup;
+			children = (
+				1B76FB09628E108ACC385B33 /* LepLog */,
+				9F9A8C000C7965D4EB93F6E0 /* LepLogTests */,
+				7CE115B87E3B6BBC345AB549 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		53856BBF2598B7172F3999AE /* Journal */ = {
+			isa = PBXGroup;
+			children = (
+				BEE7BD54538280185FBD88A0 /* ChecklistSections.swift */,
+				AA67E82A4EC5123702B88F81 /* JournalScreen.swift */,
+				C1CC05C398F2C6703C958A03 /* LifeListCard.swift */,
+				070CB9EFEC97F8483A4F6388 /* LogSections.swift */,
+				7E467377019FDBFF6ED99765 /* SightingSheet.swift */,
+				FB3B2139B659B9584645EAFE /* SpeciesPicker.swift */,
+			);
+			path = Journal;
+			sourceTree = "<group>";
+		};
+		69B501F6608AA5E5933E1E69 /* Chat */ = {
+			isa = PBXGroup;
+			children = (
+				080424553D3C671F49EEB5FC /* ChatListScreen.swift */,
+				E3E146EC32481B279AF5B923 /* ChatThreadScreen.swift */,
+				1AB1900746B8236383ED6394 /* ShareSheets.swift */,
+			);
+			path = Chat;
+			sourceTree = "<group>";
+		};
+		7CE115B87E3B6BBC345AB549 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				ABBC04B295032E0020D70DF0 /* LepLog.app */,
+				618973DD781F367BB1C09457 /* LepLogTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9CAA43F4BACD0718E6D26324 /* Friends */ = {
+			isa = PBXGroup;
+			children = (
+				1596FD3E50B5C6A9A143777D /* FriendLogScreen.swift */,
+				448ED2373EBC3FFBB758265B /* FriendsScreen.swift */,
+			);
+			path = Friends;
+			sourceTree = "<group>";
+		};
+		9F9A8C000C7965D4EB93F6E0 /* LepLogTests */ = {
+			isa = PBXGroup;
+			children = (
+				050C10E061547C1CD864DE89 /* LepLogTests.swift */,
+			);
+			path = LepLogTests;
+			sourceTree = "<group>";
+		};
+		B16337020C498362DCB0B608 /* Map */ = {
+			isa = PBXGroup;
+			children = (
+				AC9033294378ECA96E3312DE /* MapScreen.swift */,
+				1614537A694331CE33224FC2 /* SightingsMap.swift */,
+			);
+			path = Map;
+			sourceTree = "<group>";
+		};
+		B1E3DA895CCDE8BA405F2962 /* Identify */ = {
+			isa = PBXGroup;
+			children = (
+				C7528D17568697CCF55AEC1E /* CameraPicker.swift */,
+				5560090A60BA0C9AF5769BC3 /* IdentifyFlow.swift */,
+				E018D7C6F527E26C0EC208F0 /* IdentifyScreen.swift */,
+			);
+			path = Identify;
+			sourceTree = "<group>";
+		};
+		B8ED69CFFE73F314B674619E /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				F6B6D53AE61B476DC011E0C6 /* PasswordGateView.swift */,
+				59C1B98559071656A59D5E9A /* ProfileScreen.swift */,
+				5211F05BC5F55A6D906C336C /* SwitchLogSheet.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		C3369D32247EF8F520AABFFC /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				D3D2086BF61B5F5E146E79A8 /* API.swift */,
+				E0FBA331CC664254CC24C2CC /* AppModel.swift */,
+				654B634124053379B4135DBD /* BugGroups.swift */,
+				5C8F1E48C063905CF1CCB2E2 /* Codes.swift */,
+				A3F45E4694167D063A9F7066 /* Config.swift */,
+				F3FB3DE0ED31833B73E01090 /* Format.swift */,
+				ABE3647B21A749AC92E78ED5 /* Keychain.swift */,
+				FEF159E36CFC8E49C78DBAA8 /* Location.swift */,
+				230AE5495C4FF12C63BB394C /* Models.swift */,
+				ED0A3A0A44496DAF381A25E8 /* PhotoPrep.swift */,
+				DF8F397C37B9119CB3BF0F28 /* Push.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		D74C5680A193FB9DB986FF1A /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				69B501F6608AA5E5933E1E69 /* Chat */,
+				EC6352B10E4764BC141CE6A6 /* Components */,
+				9CAA43F4BACD0718E6D26324 /* Friends */,
+				B1E3DA895CCDE8BA405F2962 /* Identify */,
+				53856BBF2598B7172F3999AE /* Journal */,
+				B16337020C498362DCB0B608 /* Map */,
+				B8ED69CFFE73F314B674619E /* Profile */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		EC6352B10E4764BC141CE6A6 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				E6E882EDACD327D44FE3B3D7 /* Bits.swift */,
+				960F77ABA49B8BBC66522959 /* Codes+UI.swift */,
+				01C81A3E9C8EC80DF1DB76DB /* Icons.swift */,
+				B0AC4571605D4BA02CE22048 /* Theme.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		40D6648622F5CCB9FDC35C8C /* LepLog */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 362F2ECEE7F334873870C702 /* Build configuration list for PBXNativeTarget "LepLog" */;
+			buildPhases = (
+				A12E70C6ADF5A9BC010D27DD /* Sources */,
+				4DFE8EF11D5053D0CFFCA692 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LepLog;
+			packageProductDependencies = (
+			);
+			productName = LepLog;
+			productReference = ABBC04B295032E0020D70DF0 /* LepLog.app */;
+			productType = "com.apple.product-type.application";
+		};
+		5BC8C693DA428DE1444B946E /* LepLogTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E281451D0C76919C69893FFE /* Build configuration list for PBXNativeTarget "LepLogTests" */;
+			buildPhases = (
+				1974CC5A9FB380AC022F2E7D /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8A5DD59F67E91711995A3106 /* PBXTargetDependency */,
+			);
+			name = LepLogTests;
+			packageProductDependencies = (
+			);
+			productName = LepLogTests;
+			productReference = 618973DD781F367BB1C09457 /* LepLogTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		ABD1C48A7FEE878FCCA165D3 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					40D6648622F5CCB9FDC35C8C = {
+						DevelopmentTeam = GX7YWG7Q7M;
+						ProvisioningStyle = Automatic;
+					};
+					5BC8C693DA428DE1444B946E = {
+						DevelopmentTeam = GX7YWG7Q7M;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 54380BF2D0DCCF9274FEFE53 /* Build configuration list for PBXProject "LepLog" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 4DD85C5871A167B8417D0E22;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 7CE115B87E3B6BBC345AB549 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				40D6648622F5CCB9FDC35C8C /* LepLog */,
+				5BC8C693DA428DE1444B946E /* LepLogTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4DFE8EF11D5053D0CFFCA692 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F5C01F81064ADDC7F7CE1A1 /* Assets.xcassets in Resources */,
+				EE861861391F3CC1F28D69CB /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1974CC5A9FB380AC022F2E7D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				63E93D8D886C0F31D79B00A8 /* LepLogTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A12E70C6ADF5A9BC010D27DD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				562385D5DC16ECC09BCF360D /* API.swift in Sources */,
+				D835C0366C22FC1CB2A8F218 /* AppModel.swift in Sources */,
+				96D27AAA0215DEBA158531D7 /* Bits.swift in Sources */,
+				517CEAB81AE119AD3FA97809 /* BugGroups.swift in Sources */,
+				0230FD9891D8F847DD6E384E /* CameraPicker.swift in Sources */,
+				8B180AC502534915815DB6C4 /* ChatListScreen.swift in Sources */,
+				4F81796E9F9BEBB47857919B /* ChatThreadScreen.swift in Sources */,
+				2CCE8AFB6222A59821774747 /* ChecklistSections.swift in Sources */,
+				3A972825E3CF1081A6262B89 /* Codes+UI.swift in Sources */,
+				2B68CDDEEE0A5762037E904F /* Codes.swift in Sources */,
+				C12B52B62A7D0FBB1110CD20 /* Config.swift in Sources */,
+				2CE20653AA8153CFF27B93A1 /* Format.swift in Sources */,
+				9AD0C55262BD5EFC178C7248 /* FriendLogScreen.swift in Sources */,
+				B91B6A34EEA7F9C49AD1CE98 /* FriendsScreen.swift in Sources */,
+				042B1B26E8AAC3D060C537D6 /* Icons.swift in Sources */,
+				35AF8AD5E9A51C3D3F54AF35 /* IdentifyFlow.swift in Sources */,
+				BE86061697565FE52C522800 /* IdentifyScreen.swift in Sources */,
+				72C818B18D1B4EF3863B0B7F /* JournalScreen.swift in Sources */,
+				AA7628BE4A8B927DEAD302A6 /* Keychain.swift in Sources */,
+				6D44C7B66F9C46EA7F3483BC /* LepLogApp.swift in Sources */,
+				978AE1ACAB34FE9476ECCE62 /* LifeListCard.swift in Sources */,
+				FE2193648512AF66A8EE9322 /* Location.swift in Sources */,
+				660500C3333347AA9F651F25 /* LogSections.swift in Sources */,
+				6284542E5BEBA7E2813A6A98 /* MapScreen.swift in Sources */,
+				DD41FA5C8E76B19A8AD8ED63 /* Models.swift in Sources */,
+				FAC19C8DA4739339652BE37C /* PasswordGateView.swift in Sources */,
+				3202F405E072DB3B24449C48 /* PhotoPrep.swift in Sources */,
+				0E90AE83B61A5F2B62955E13 /* ProfileScreen.swift in Sources */,
+				3A524CF649790C4C55658CA6 /* Push.swift in Sources */,
+				2264738188F9158B31EA77AF /* ShareSheets.swift in Sources */,
+				AD6C18DF8D6EAA6D598C9529 /* SightingSheet.swift in Sources */,
+				E83418F36E42607052B8C932 /* SightingsMap.swift in Sources */,
+				C70E714A3390DA13BD16B047 /* SpeciesPicker.swift in Sources */,
+				FE02E4F9A2DAE59F734E31AB /* SwitchLogSheet.swift in Sources */,
+				C6A2C5C10317F7F5DE516232 /* Theme.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		8A5DD59F67E91711995A3106 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 40D6648622F5CCB9FDC35C8C /* LepLog */;
+			targetProxy = F4AB54C096C28D787A1FFA13 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		190CB2A72B70A7912F52A5FE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = LepLog/LepLog.entitlements;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = LepLog/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.jaredv24.leplog;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		5C976FFB8610A52828DD8012 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.jaredv24.leplog.tests;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LepLog.app/LepLog";
+			};
+			name = Release;
+		};
+		A7DB016974CB2A8A70DE2BA9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = LepLog/LepLog.entitlements;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = LepLog/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.jaredv24.leplog;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		AD74EFD6EE6143C442A8DC1C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = GX7YWG7Q7M;
+				ENABLE_TESTABILITY = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		B89AF2B225E3B87B5AF96A8C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = GX7YWG7Q7M;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		C52955F6FA8A1A0ECD3D74DA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.jaredv24.leplog.tests;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LepLog.app/LepLog";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		362F2ECEE7F334873870C702 /* Build configuration list for PBXNativeTarget "LepLog" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				190CB2A72B70A7912F52A5FE /* Debug */,
+				A7DB016974CB2A8A70DE2BA9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		54380BF2D0DCCF9274FEFE53 /* Build configuration list for PBXProject "LepLog" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AD74EFD6EE6143C442A8DC1C /* Debug */,
+				B89AF2B225E3B87B5AF96A8C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E281451D0C76919C69893FFE /* Build configuration list for PBXNativeTarget "LepLogTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C52955F6FA8A1A0ECD3D74DA /* Debug */,
+				5C976FFB8610A52828DD8012 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = ABD1C48A7FEE878FCCA165D3 /* Project object */;
+}
